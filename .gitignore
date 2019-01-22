@@ -328,3 +328,12 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+
+#env files
+*.flaskenv
+
+#exe
+ngrok.exe
+
+#venv
+venv/
