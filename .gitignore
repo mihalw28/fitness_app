@@ -337,3 +337,10 @@ ngrok.exe
 
 #venv
 venv/
+
+#db
+app.db
+
+#logs
+fitness_app.log*
+
