@@ -8,7 +8,7 @@
             {{ form.activity.label }}<br>
             {{ form.activity(cols=32, rows=4) }}<br>
             {% for error in form.activity.errors %}
-            <span style="color: red;">[{{ error }}]</span>
+                <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>
         <p>{{ form.submit() }}</p>
@@ -16,4 +16,10 @@
     {% for activity in activities %}
         {% include '_post.html' %}
     {% endfor %}
+    {% if prev_url %}
+        <a href="{{ prev_url }}">Newer activities</a>
+    {% endif %}
+    {% if next_url %}
+        <a href="{{ next_url }}">Older activities</a>
+    {% endif %}
 {% endblock %}

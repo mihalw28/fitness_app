@@ -5,6 +5,8 @@ from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, Activity
 from werkzeug.urls import url_parse
 from datetime import datetime
+from app.forms import ResetPasswordRequestForm
+from app.email import send_password_reset_email
 
 
 @app.before_request
@@ -27,7 +29,13 @@ def index():
     page = request.args.get('page', 1, type=int)
     activities = current_user.followed_activities().paginate(
         page, app.config['POSTS_PER_PAGE'], False)
-    return render_template('index.html', title='Home Page', form=form, activities=activities.items)
+    next_url = url_for('index', page=activities.next_num) \
+        if activities.has_next else None
+    prev_url = url_for('index', page=activities.prev_num) \
+        if activities.has_prev else None
+    return render_template('index.html', title='Home Page', form=form, 
+                           activities=activities.items, next_url=next_url,
+                           prev_url=prev_url)
 
 @app.route('/explore')
 @login_required
@@ -35,7 +43,12 @@ def explore():
     page = request.args.get('page', 1, type=int)
     activities = Activity.query.order_by(Activity.timestamp.desc()).paginate(
         page, app.config['POSTS_PER_PAGE'], False)
-    return render_template("index.html", title="Explore", activities=activities.items)
+    next_url = url_for('explore', page=activities.next_num) \
+        if activities.has_next else None
+    prev_url = url_for('explore', page=activities.prev_num) \
+        if activities.has_prev else None
+    return render_template("index.html", title="Explore", activities=activities.items,
+                           next_url=next_url, prev_url=prev_url)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -77,15 +90,32 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
+@app.route('/reset_password_request', methods=['GET', 'POST'])
+def reset_password_request():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = ResetPasswordRequestForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user:
+            send_password_reset_email(user)
+        flash('Check your email. Instructions are waiting for you there.')
+        return redirect(url_for('login'))
+    return render_template('reset_password_request.html', title='Reset Password', form=form)
+
 @app.route('/user/<username>')
 @login_required
 def user(username):
     user = User.query.filter_by(username=username).first_or_404()
-    activities = [
-        {'author': user, 'activity': ['joga', 'bodypump']},
-        {'author': user, 'activity': 'bodypump'}
-    ]
-    return render_template('user.html', user=user, posts=activities)
+    page = request.args.get('page', 1, type=int)
+    activities = user.activities.order_by(Activity.timestamp.desc()).paginate(
+        page, app.config['POSTS_PER_PAGE'], False)
+    next_url = url_for('user', username=user.username, page=activities.next_num) \
+        if activities.has_next else None
+    prev_url = url_for('user', username=user.username, page=activities.prev_num) \
+        if activities.has_prev else None
+    return render_template('user.html', user=user, activities=activities.items,
+                           next_url=next_url, prev_url=prev_url)
 
 @app.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
