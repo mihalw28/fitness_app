@@ -1,6 +1,8 @@
 <table>
     <tr valign="top">
-        <td><img src="{{ post.author.avatar(36) }}"></td>
-        <td>{{ post.author.username }} accepts:<br>{{ post.activity }}</td>
+        <td><img src="{{ activity.author.avatar(36) }}"></td>
+        <td><a href="{{ url_for('user', username=activity.author.username) }}">{{ activity.author.username }}</a>
+            participated in:<br>{{ activity.activ_body }}
+        </td>
     </tr>
 </table>

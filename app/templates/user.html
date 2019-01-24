@@ -9,6 +9,15 @@
                 {% if user.about_me %}
                     <p>{{ user.about_me }}</p>
                 {% endif %}
+                {% if user.yoga %}
+                    <p>Zajęcia na które chodzisz: Yoga</p>
+                {% endif %}
+                {% if user.bodypump %}
+                    <p>Zajęcia na które chodzisz: Bodypump</p>
+                {% endif %}
+                {% if user.calistenics %}
+                    <p>Zajęcia na które chodzisz: Calistenics</p>
+                {% endif %}
                 {% if user.last_seen %}
                     <p>Last seen on: {{user.last_seen }}</p>
                 {% endif %}
@@ -19,7 +28,7 @@
         </tr>
     </table>
     <hr>
-    {% for post in posts %}
+    {% for activity in activities %}
         {% include '_post.html' %}
     {% endfor %}
 {% endblock %}

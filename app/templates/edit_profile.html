@@ -11,6 +11,9 @@
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>
+        <p>{{ form.yoga() }} {{ form.yoga.label }}</p>
+        <p>{{ form.bodypump() }} {{ form.bodypump.label }}</p>
+        <p>{{ form.calistenics() }} {{ form.calistenics.label }}</p>
         <p>
             {{ form.about_me.label }}<br>
             {{ form.about_me(cols=50, rows=4) }}<br>

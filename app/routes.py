@@ -1,8 +1,8 @@
 from flask import render_template, flash, redirect, url_for, request
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, EditProfileForm
+from app.forms import LoginForm, RegistrationForm, EditProfileForm, ActivityForm
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import User
+from app.models import User, Activity
 from werkzeug.urls import url_parse
 from datetime import datetime
 
@@ -13,21 +13,30 @@ def before_request():
         current_user.last_seen = datetime.utcnow()
         db.session.commit()
 
-@app.route('/')
-@app.route('/index')
+@app.route('/', methods=['GET', 'POST'])
+@app.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
-    activities = [
-        {
-            'author': {'username': 'John'},
-            'pref_activity': 'bodypump'
-        },
-        {
-            'author': {'username': 'Susan'},
-            'pref_activity': 'joga'
-        }
-    ]
-    return render_template('index.html', title='Home Page', activities=activities)
+    form = ActivityForm()
+    if form.validate_on_submit():
+        activity = Activity(activ_body=form.activity.data, author=current_user)
+        db.session.add(activity)
+        db.session.commit()
+        flash('Your activity is posted now!')
+        return redirect(url_for('index'))
+    page = request.args.get('page', 1, type=int)
+    activities = current_user.followed_activities().paginate(
+        page, app.config['POSTS_PER_PAGE'], False)
+    return render_template('index.html', title='Home Page', form=form, activities=activities.items)
+
+@app.route('/explore')
+@login_required
+def explore():
+    page = request.args.get('page', 1, type=int)
+    activities = Activity.query.order_by(Activity.timestamp.desc()).paginate(
+        page, app.config['POSTS_PER_PAGE'], False)
+    return render_template("index.html", title="Explore", activities=activities.items)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -84,6 +93,9 @@ def edit_profile():
     form = EditProfileForm(current_user.username)
     if form.validate_on_submit():
         current_user.username = form.username.data
+        current_user.yoga = form.yoga.data
+        current_user.bodypump = form.bodypump.data
+        current_user.calistenics = form.calistenics.data
         current_user.about_me = form.about_me.data
         db.session.commit()
         flash('Your changes have been saved.')
