@@ -9,9 +9,9 @@
             <a href="{{ url_for('user', username=activity.author.username) }}">
                 {{ activity.author.username }}
             </a>
-            participated in:
+            {{ moment(activity.timestamp).fromNow() }} participated in: {{ activity.activ_body }}
             <br>
-            {{ activity.activ_body }}
+            
         </td>
     </tr>
 </table>
