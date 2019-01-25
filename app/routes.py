@@ -5,7 +5,7 @@ from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, Activity
 from werkzeug.urls import url_parse
 from datetime import datetime
-from app.forms import ResetPasswordRequestForm
+from app.forms import ResetPasswordRequestForm, ResetPasswordForm
 from app.email import send_password_reset_email
 
 
@@ -102,6 +102,21 @@ def reset_password_request():
         flash('Check your email. Instructions are waiting for you there.')
         return redirect(url_for('login'))
     return render_template('reset_password_request.html', title='Reset Password', form=form)
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    user = User.verify_reset_password_token(token)
+    if not user:
+        return redirect(url_for('index'))
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        user.set_password(form.password.data)
+        db.session.commit()
+        flash('Your password has been reset.')
+        return redirect(url_for('login'))
+    return render_template('reset_password.html', form=form)
 
 @app.route('/user/<username>')
 @login_required
