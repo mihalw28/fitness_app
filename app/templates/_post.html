@@ -1,15 +1,17 @@
 <table class="table table-hover">
     <tr>
         <td width="70px">
-            <a href="{{ url_for('user', username=activity.author.username) }}">
+            <a href="{{ url_for('main.user', username=activity.author.username) }}">
                 <img src="{{ activity.author.avatar(70) }}" />
             </a>
         </td>
         <td>
-            <a href="{{ url_for('user', username=activity.author.username) }}">
-                {{ activity.author.username }}
-            </a>
-            {{ moment(activity.timestamp).fromNow() }} participated in: {{ activity.activ_body }}
+            {% set user_link %}
+                <a href="{{ url_for('main.user', username=activity.author.username) }}">
+                    {{ activity.author.username }}
+                </a>
+            {% endset %}
+            You have been participated in: {{ activity.activ_body }} {{ moment(activity.timestamp).fromNow() }}
             <br>
             
         </td>
