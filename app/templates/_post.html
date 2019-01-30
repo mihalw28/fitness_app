@@ -11,7 +11,7 @@
                     {{ activity.author.username }}
                 </a>
             {% endset %}
-            {{ moment(activity.timestamp).fromNow() }} participated in: {{ activity.activ_body }}
+            You have been participated in: {{ activity.activ_body }} {{ moment(activity.timestamp).fromNow() }}
             <br>
             
         </td>
