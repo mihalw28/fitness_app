@@ -43,6 +43,7 @@ python-editor==1.0.3
 pytz==2018.9
 requests==2.21.0
 rsa==4.0
+selenium==3.141.0
 six==1.12.0
 SQLAlchemy==1.2.16
 twilio==6.23.1
