@@ -344,3 +344,4 @@ app.db
 #logs
 fitness_app.log*
 
+chromedriver.exe

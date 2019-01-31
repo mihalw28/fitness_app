@@ -1,7 +1,7 @@
 from flask import request
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, BooleanField
-from wtforms.validators import ValidationError, DataRequired, Length
+from wtforms import StringField, SubmitField, TextAreaField, BooleanField, SelectField
+from wtforms.validators import ValidationError, DataRequired, Length, InputRequired
 from app.models import User
 
 
@@ -28,3 +28,10 @@ class ActivityForm(FlaskForm):
     activity = TextAreaField('Say something', validators=[
         DataRequired(), Length(min=1, max=140)])
     submit = SubmitField('Submit')
+
+
+# signup form for workout
+class SignUpForm(FlaskForm):
+    training = SelectField('Your workouts', choices=[('pi', 'Pilates'), ('zu', 'ZUMBA'), ('ab', 'ABT')],
+        validators=[InputRequired()])
+    submit2 = SubmitField("Sign Up")

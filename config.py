@@ -16,3 +16,5 @@ class Config(object):
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     ADMINS = ['mihalw28@o2.pl']
     POSTS_PER_PAGE = 10
+    GYM_USER_NAME = os.environ.get('GYM_USER_NAME')
+    GYM_USER_PASSWORD = os.environ.get('GYM_USER_PASSWORD')
