@@ -6,13 +6,8 @@ from hashlib import md5
 from time import time
 import jwt
 from flask import current_app
-# signup
-import time as stime
-from selenium import webdriver
-from config import Config
 
-username = 'michal.waszak@yahoo.com'
-password = 'jestemok'
+
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -25,9 +20,7 @@ class User(UserMixin, db.Model):
     about_me = db.Column(db.String(140)) 
     club_name = db.Column(db.String(64))
     club_no = db.Column(db.Integer, unique=False)
-    yoga = db.Column(db.Boolean)
-    bodypump = db.Column(db.Boolean)
-    calistenics = db.Column(db.Boolean)
+    classes = db.Column(db.String(50))
     last_seen = db.Column(db.DateTime, default=datetime.utcnow) # change to last visit in a gym :)
     activities = db.relationship('Activity', backref='author', lazy='dynamic')
     trainings = db.relationship('Train', backref='author', lazy='dynamic')
@@ -83,5 +76,5 @@ class Train(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
      
-    #def __repr__(self):
-    #    return '<Training {}>'.format(self.body)
+    def __repr__(self):
+        return '<Training {}>'.format(self.body)

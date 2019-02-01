@@ -2,15 +2,17 @@ from flask import request
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField, BooleanField, SelectField
 from wtforms.validators import ValidationError, DataRequired, Length, InputRequired
-from app.models import User
+from app.models import User, Train
 
 
 class EditProfileForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     about_me = TextAreaField('About me', validators=[Length(min=0, max=140)])
-    yoga = BooleanField('Yoga')
-    bodypump = BooleanField('Bodypump')
-    calistenics = BooleanField('Calistenics')
+    classes = SelectField('My classes', choices=[('Kalistenika', 'Kalistenika'), ('Pilates', 'Pilates'), 
+        ('ZUMBA', 'ZUMBA'), ('ABT', 'ABT'), ('Yoga', 'YOGA'), ('Bodypump', 'Bodypump'), ('Bodybalance', 'Bodybalance'), 
+        ('Stretching', 'Stretching')], validators=[DataRequired()])
+    club_name = SelectField('My gym', choices=[('Posnania', 'Posnania'), ('Bałtyk', 'Bałtyk'),
+        ('GreenPoint', 'GreenPoint'), ('Kinepolis', 'Kinepolis')], validators=[DataRequired()])
     submit = SubmitField('Submit')
 
     def __init__(self, original_username, *args, **kwargs):

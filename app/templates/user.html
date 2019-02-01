@@ -9,14 +9,11 @@
                 {% if user.about_me %}
                     <p>{{ user.about_me }}</p>
                 {% endif %}
-                {% if user.yoga %}
-                    <p>Zajęcia na które chodzisz: Yoga</p>
+                {% if user.club_name %}
+                    <p>Your gym: {{ user.club_name }}</p>
                 {% endif %}
-                {% if user.bodypump %}
-                    <p>Zajęcia na które chodzisz: Bodypump</p>
-                {% endif %}
-                {% if user.calistenics %}
-                    <p>Zajęcia na które chodzisz: Calistenics</p>
+                {% if user.classes %}
+                    <p>Your favourite workout: {{ user.classes }}</p>
                 {% endif %}
                 {% if user.last_seen %}
                     <p>Last seen on: {{ moment(user.last_seen).format('LLL') }}</p>
