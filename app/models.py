@@ -39,7 +39,7 @@ class User(UserMixin, db.Model):
         digest = md5(self.email.lower().encode('utf-8')).hexdigest()
         return 'https://www.gravatar.com/avatar/{}?d=retro&s={}'.format(
             digest, size)
-
+    
     def followed_activities(self):
         own = Activity.query.filter_by(user_id=self.id) #just own activities
         return own.order_by(Activity.timestamp.desc())
@@ -72,7 +72,7 @@ class Activity(db.Model):
 
 class Train(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    your_trainig = db.Column(db.String(50))
+    your_training = db.Column(db.String(50)) #be careful of misspelling
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
      
