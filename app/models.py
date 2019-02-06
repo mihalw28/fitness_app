@@ -20,11 +20,10 @@ class User(UserMixin, db.Model):
     about_me = db.Column(db.String(140)) 
     club_name = db.Column(db.String(64))
     club_no = db.Column(db.Integer, unique=False)
-    yoga = db.Column(db.Boolean)
-    bodypump = db.Column(db.Boolean)
-    calistenics = db.Column(db.Boolean)
+    classes = db.Column(db.String(50))
     last_seen = db.Column(db.DateTime, default=datetime.utcnow) # change to last visit in a gym :)
     activities = db.relationship('Activity', backref='author', lazy='dynamic')
+    trainings = db.relationship('Train', backref='author', lazy='dynamic')
 
 
     def __repr__(self):
@@ -40,7 +39,7 @@ class User(UserMixin, db.Model):
         digest = md5(self.email.lower().encode('utf-8')).hexdigest()
         return 'https://www.gravatar.com/avatar/{}?d=retro&s={}'.format(
             digest, size)
-
+    
     def followed_activities(self):
         own = Activity.query.filter_by(user_id=self.id) #just own activities
         return own.order_by(Activity.timestamp.desc())
@@ -70,3 +69,12 @@ class Activity(db.Model):
 
     def __repr__(self):
         return '<Activity {}>'.format(self.body)
+
+class Train(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    your_training = db.Column(db.String(50)) #be careful of misspelling
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+     
+    def __repr__(self):
+        return '<Training {}>'.format(self.body)
