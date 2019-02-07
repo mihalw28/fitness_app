@@ -7,7 +7,8 @@ from app.models import User
 
 class SignUpForTrainingForm(FlaskForm):
     training_activity = HiddenField()
-    #user_club_number = HiddenField()
-    #user_club_login = HiddenField()
-    #user_club_password = HiddenField()
     submit = SubmitField("Sign Up")
+
+class CancelTrainingForm(FlaskForm):
+    trainings= HiddenField()
+    submit = SubmitField("Cancel")
