@@ -43,7 +43,7 @@ def index():
 def explore():
     page = request.args.get('page', 1, type=int)
     activities = Activity.query.order_by(Activity.timestamp.desc()).paginate(
-        page, current_app.config['POSTS_PER_PAGE'], False)
+        page, current_app.config['ACTIVITIES_PER_PAGE'], False)
     next_url = url_for('main.explore', page=activities.next_num) \
         if activities.has_next else None
     prev_url = url_for('main.explore', page=activities.prev_num) \
@@ -56,7 +56,7 @@ def explore():
 def user(username):
     user = User.query.filter_by(username=username).first_or_404()
     page = request.args.get('page', 1, type=int)
-    activities = user.activities.order_by(Activity.timestamp.desc()).paginate(
+    activities = user.trainings.order_by(Train.timestamp.desc()).paginate(
         page, current_app.config['ACTIVITIES_PER_PAGE'], False)
     next_url = url_for('main.user', username=user.username, page=activities.next_num) \
         if activities.has_next else None

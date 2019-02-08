@@ -4,17 +4,17 @@ from app.workouts import bp
 from flask import current_app
 from flask_login import current_user, login_user, login_required
 from app.models import User, Train
-#from werkzeug.urls import url_parse
 from selenium import webdriver
 import time
 from config import Config
 from app.workouts.forms import SignUpForTrainingForm, CancelTrainingForm
 
-@bp.route('/signup', methods=['GET', 'POST', 'DELETE'])
+@bp.route('/signup', methods=['GET', 'POST'])
 @login_required
 def signup():
     form = SignUpForTrainingForm(current_user.username)
     if form.validate_on_submit():
+
         # Make browser headless in future here
         user = User.query.filter_by(username=current_user.username).first()
         driver = webdriver.Chrome('/Users/micha/Documents/GitHub/fitness_app/chromedriver')
@@ -38,25 +38,31 @@ def signup():
         list_bookable = []
         for workout in list_all_bookable_act:
             list_bookable.append((workout.text).lower())
-        # find index of desirable workout in all workouts
-        workout_index = list_all.index((user.classes).lower())    
-        web_index = str(workout_index + 2) # from gym website
-        #web_index = str(web_index)
-        driver.find_element_by_css_selector(".cp-class-container > div:nth-of-type(2) > div:nth-of-type(" + web_index + ") .class-item-actions").click()
-        time.sleep(4) # just for visual check
-        # Unbook class - need to extend this line
-        #driver.find_element_by_css_selector(".is-booked .class-item-actions").click()
-        training_activity = Train(your_training = user.classes, author=current_user) #misspelling
-        db.session.add(training_activity)
-        db.session.commit()
-        flash('We are trying to sign up you for trainig!')
+
+        user_training = user.classes.lower()
+        if not user_training in list_bookable:
+            flash("Your training is not bookable for now.")
+        else:
+            # find index of desirable workout in all workouts
+            workout_index = list_all.index((user.classes).lower())    
+            web_index = str(workout_index + 2) # from gym website
+            driver.find_element_by_css_selector(".cp-class-container > div:nth-of-type(2) > div:nth-of-type(" + web_index + ") .class-item-actions").click()
+            time.sleep(4) # just for visual check
+            training_activity = Train(your_training = user.classes, author=current_user)
+            db.session.add(training_activity)
+            db.session.commit()
+            flash('We are trying to sign up you for trainig!')
         return redirect(url_for('main.index'))
+    return render_template('workouts/signup.html', title='Signup', form=form)
 
 
+@bp.route('/cancel', methods=['GET', 'POST'])
+@login_required
+def cancel():
     form2 = CancelTrainingForm(current_user.username)
     if form2.validate_on_submit():
         # Make browser headless in future here
-        '''user = User.query.filter_by(username=current_user.username).first()
+        user = User.query.filter_by(username=current_user.username).first()
         driver = webdriver.Chrome('/Users/micha/Documents/GitHub/fitness_app/chromedriver')
         driver.get(current_app.config['GYM_LOGIN_URL'])
         time.sleep(3) #obligatory for waiting to load page
@@ -68,11 +74,13 @@ def signup():
         list_url = current_app.config['GYM_LIST_CLASSES'] + str(user.club_name) + '/List'
         driver.get(list_url)
         time.sleep(4)
-        '''
+        driver.find_element_by_css_selector(".is-booked .class-item-actions").click()
+        time.sleep(1)
         trainings = current_user.followed_trainings().first()
         db.session.delete(trainings)
         db.session.commit()
         flash('Day off. Netflix & chill.')
         return redirect(url_for('main.index'))
+    return render_template('workouts/signup.html', title='Cancel', form2=form2)
 
-    return render_template('workouts/signup.html', title='Signup', form=form, form2=form2)
+    

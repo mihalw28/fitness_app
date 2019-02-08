@@ -10,5 +10,5 @@ class SignUpForTrainingForm(FlaskForm):
     submit = SubmitField("Sign Up")
 
 class CancelTrainingForm(FlaskForm):
-    trainings= HiddenField()
+    trainings = HiddenField()
     submit = SubmitField("Cancel")
