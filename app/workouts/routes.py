@@ -19,7 +19,7 @@ def signup():
         user = User.query.filter_by(username=current_user.username).first()
         driver = webdriver.Chrome('/Users/micha/Documents/GitHub/fitness_app/chromedriver')
         driver.get(current_app.config['GYM_LOGIN_URL'])
-        time.sleep(3) #obligatory for waiting to load page
+        time.sleep(4) #obligatory for waiting to load page
         driver.find_element_by_xpath("//div/input[@name='Login']") \
             .send_keys(user.club_site_login)
         driver.find_element_by_xpath("//div/input[@name='Password']") \
@@ -27,37 +27,35 @@ def signup():
         time.sleep(2) # just to see results no need in headless mode
         driver.find_element_by_class_name('auth-form-actions').click()
         time.sleep(6) # next page waiting
-        list_url = current_app.config['GYM_LIST_CLASSES'] + str(user.club_name) + \
-            '/List'
+        list_url = current_app.config['GYM_LIST_CLASSES'] + str(user.club_name) + '/List'
         driver.get(list_url)
         time.sleep(4)
 
-        # find date
+        # find date string 
         date = driver.find_element_by_css_selector(".cp-class-container > div:nth-of-type(2) \
                                                     .class-list-day-title").text.lower()
-
-        # all activieties in one day
+        # list all activities in one day 
+        list_all = []
         list_all_day_act = driver.find_elements_by_css_selector(".cp-class-container > div:nth-of-type(2) \
                                                                  .calendar-item-name")
-        list_all = []
-        for workout in list_all_day_act:
-            list_all.append((workout.text).lower())
-        # all bookable activities and their start hours
+        for element in list_all_day_act:
+            list_all.append((element.text).lower())
+        # list all bookable activities and their start time
+        list_bookable = []
         list_all_bookable_act = driver.find_elements_by_css_selector(".cp-class-container > div:nth-of-type(2) \
                                                                       .is-bookable .calendar-item-name")
-        list_bookable = []
-        for workout in list_all_bookable_act:
-            list_bookable.append((workout.text).lower())
-        # all activities' start time
+        for element in list_all_bookable_act:
+            list_bookable.append((element.text).lower())
+        # list all activities' start time
+        list_all_start = []
         list_hours = driver.find_elements_by_css_selector(".cp-class-container > div:nth-of-type(2) \
                                                            .calendar-item-start")
-        list_h = []
-        for hour in list_hours:
-            list_h.append(hour.text)
+        for element in list_hours:
+            list_all_start.append(element.text)
 
-        #combine day & start hour strings, then parse it
+        #combine date & start hour strings, then list parsed
         date_hour = []
-        for hour in list_h:
+        for hour in list_all_start:
             date_hour.append(date + ' ' + hour)
 
         parsed_dates = []
@@ -67,13 +65,12 @@ def signup():
 
         user_training = user.classes.lower()
         if not user_training in list_bookable:
-            flash("Your training is not bookable for now.")
+            flash("Your training is not bookable now.")
         else:
-            # find index of desirable workout in all workouts
+            # find index of desirable workout and book
             workout_index = list_all.index((user.classes).lower())    
             web_index = str(workout_index + 2) # from gym website
-            driver.find_element_by_css_selector(".cp-class-container > div: \
-                                                 nth-of-type(2) > div:nth-of-type(" + web_index + ") \
+            driver.find_element_by_css_selector(".cp-class-container > div:nth-of-type(2) > div:nth-of-type(" + web_index + ") \
                                                  .class-item-actions").click()
             time.sleep(4) # just for visual check
             training_datetime = parsed_dates[workout_index-1]
