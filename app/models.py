@@ -40,9 +40,16 @@ class User(UserMixin, db.Model):
         return 'https://www.gravatar.com/avatar/{}?d=retro&s={}'.format(
             digest, size)
     
+    '''
     def followed_activities(self):
         own = Activity.query.filter_by(user_id=self.id) #just own activities
         return own.order_by(Activity.timestamp.desc())
+    '''
+    ###
+    def followed_trainings(self):
+        own = Train.query.filter_by(user_id=self.id)
+        return own.order_by(Train.timestamp.desc())
+    ###
 
     def get_reset_password_token(self, expires_in=600):
         return jwt.encode({'reset_password': self.id, 'exp': time() + expires_in},
@@ -72,7 +79,8 @@ class Activity(db.Model):
 
 class Train(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    your_training = db.Column(db.String(50)) #be careful of misspelling
+    your_training = db.Column(db.String(50))
+    training_datetime = db.Column(db.DateTime, index=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
      
