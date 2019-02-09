@@ -79,7 +79,8 @@ class Activity(db.Model):
 
 class Train(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    your_training = db.Column(db.String(50)) #be careful of misspelling
+    your_training = db.Column(db.String(50))
+    training_datetime = db.Column(db.DateTime, index=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
      
