@@ -9,6 +9,8 @@ import time
 from config import Config
 from app.workouts.forms import SignUpForTrainingForm, CancelTrainingForm
 import dateparser
+from twilio.rest import Client
+
 
 @bp.route('/signup', methods=['GET', 'POST'])
 @login_required
@@ -79,6 +81,18 @@ def signup():
             db.session.add(training_activity)
             db.session.commit()
             flash('We are trying to sign up you for trainig!')
+            
+            #send sms
+            # typing account_sid & autho token outside gives error
+            account_sid = current_app.config['TWILIO_ACCOUNT_SID']
+            auth_token = current_app.config['TWILIO_AUTH_TOKEN']
+            client = Client(account_sid, auth_token)
+            message = client.messages.create(
+                body = 'Świtenie, jesteś zapisany na zajęcia!',
+                from_= '+48732168578',
+                to = '+48509978392'
+            )
+            print(message.sid)
         return redirect(url_for('main.index'))
     return render_template('workouts/signup.html', title='Signup', form=form)
 
