@@ -17,7 +17,7 @@ class User(UserMixin, db.Model):
     cell_number = db.Column(db.String(12))
     club_site_login = db.Column(db.String(64))
     club_site_password = db.Column(db.String(128))
-    about_me = db.Column(db.String(140)) 
+    #about_me = db.Column(db.String(140)) 
     club_name = db.Column(db.String(64))
     club_no = db.Column(db.Integer, unique=False)
     classes = db.Column(db.String(50))
@@ -40,16 +40,9 @@ class User(UserMixin, db.Model):
         return 'https://www.gravatar.com/avatar/{}?d=retro&s={}'.format(
             digest, size)
     
-    '''
-    def followed_activities(self):
-        own = Activity.query.filter_by(user_id=self.id) #just own activities
-        return own.order_by(Activity.timestamp.desc())
-    '''
-    ###
     def followed_trainings(self):
         own = Train.query.filter_by(user_id=self.id)
         return own.order_by(Train.timestamp.desc())
-    ###
 
     def get_reset_password_token(self, expires_in=600):
         return jwt.encode({'reset_password': self.id, 'exp': time() + expires_in},

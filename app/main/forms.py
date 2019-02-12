@@ -8,10 +8,11 @@ from app.models import User, Train
 
 class EditProfileForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
-    about_me = TextAreaField('About me', validators=[Length(min=0, max=140)])
+    #about_me = TextAreaField('About me', validators=[Length(min=0, max=140)])
     classes = SelectField('My classes', choices=[('Kalistenika', 'Kalistenika'), ('Pilates', 'Pilates'), 
         ('ZUMBA', 'ZUMBA'), ('ABT', 'ABT'), ('Yoga', 'YOGA'), ('Bodypump', 'Bodypump'), ('Bodybalance', 'Bodybalance'), 
-        ('Stretching', 'Stretching')], validators=[DataRequired()])
+        ('Stretching', 'Stretching'), ('Trening Funkcjonalny', 'Trening Funkcjonalny'), ('Saf Aqua', 'Saf Aqua'),
+        ('RUNMAGEDDON', 'RUNMAGEDDON'), ('Cycling', 'Cycling')], validators=[DataRequired()])
     club_name = SelectField('My gym', choices=[('22', 'Posnania'), ('24', 'Bałtyk'),
         ('4', 'GreenPoint'), ('1', 'Kinepolis')], validators=[DataRequired()])
     submit = SubmitField('Submit')

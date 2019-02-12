@@ -3,7 +3,7 @@
 
 {% block app_content %}
     {% if form %}
-    <h1>Hi {{ current_user.username }}</h1>
+    <h1>Cześć {{ current_user.username }}!</h1>
     {{ (wtf.quick_form(form)) }}
     {% endif %}
     {% if form2 %}

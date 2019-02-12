@@ -11,9 +11,9 @@
                     {{ activity.author.username }}
                 </a>
             {% endset %}
-            You have been participated in: {{ activity.your_training }} {{ activity.training_datetime }} {{ moment(activity.timestamp).fromNow() }}
+            <p>Uczestniczyłaś/eś w: {{ activity.your_training }} {{ activity.training_datetime }}</p>
+            <p>Data zapisu: {{ moment(activity.timestamp).fromNow() }}</p>
             <br>
-            
         </td>
     </tr>
 </table>
