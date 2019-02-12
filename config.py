@@ -18,3 +18,5 @@ class Config(object):
     ACTIVITIES_PER_PAGE = 8
     GYM_LOGIN_URL = os.environ.get('GYM_LOGIN_URL')
     GYM_LIST_CLASSES = os.environ.get('GYM_LIST_CLASSES')
+    TWILIO_ACCOUNT_SID =  os.environ.get('TWILIO_ACCOUNT_SID')
+    TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')

@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, url_for
+from flask import render_template, flash, redirect, url_for, request, Flask
 from app import db
 from app.workouts import bp
 from flask import current_app
@@ -9,9 +9,13 @@ import time
 from config import Config
 from app.workouts.forms import SignUpForTrainingForm, CancelTrainingForm
 import dateparser
+from twilio.rest import Client
+from twilio.twiml.messaging_response import MessagingResponse
+from app import csrf
+
 
 @bp.route('/signup', methods=['GET', 'POST'])
-@login_required
+#@login_required
 def signup():
     form = SignUpForTrainingForm(current_user.username)
     if form.validate_on_submit():
@@ -79,6 +83,15 @@ def signup():
             db.session.add(training_activity)
             db.session.commit()
             flash('We are trying to sign up you for trainig!')
+            
+            #send sms
+            client = Client(current_app.config['TWILIO_ACCOUNT_SID'], current_app.config['TWILIO_AUTH_TOKEN'])
+            message = client.messages.create(
+                body = 'Świtenie, jesteś zapisany na zajęcia!',
+                from_= '+48732168578',
+                to = '+' + str(user.cell_number)
+            )
+            print(message.sid)
         return redirect(url_for('main.index'))
     return render_template('workouts/signup.html', title='Signup', form=form)
 
@@ -86,8 +99,9 @@ def signup():
 @bp.route('/cancel', methods=['GET', 'POST'])
 @login_required
 def cancel():
-    form2 = CancelTrainingForm(current_user.username)
-    if form2.validate_on_submit():
+    #form2 = CancelTrainingForm(current_user.username)
+    #if form2.validate_on_submit():
+    if 2 == 2:
         # Make browser headless in future here
         user = User.query.filter_by(username=current_user.username).first()
         driver = webdriver.Chrome('/Users/micha/Documents/GitHub/fitness_app/chromedriver')
@@ -108,6 +122,22 @@ def cancel():
         db.session.commit()
         flash('Day off. Netflix & chill.')
         return redirect(url_for('main.index'))
-    return render_template('workouts/signup.html', title='Cancel', form2=form2)
+    return render_template('workouts/signup.html', title='Cancel')#, form2=form2)
 
-    
+@csrf.exempt # Some errors without this decorator
+@bp.route('/sms', methods=['POST', 'GET'])
+#@login_required
+def sms():
+    resp = MessagingResponse()
+    #from_number = request.values.get('From', None)
+    body = request.values.get('Body', None)
+    #number = from_number
+    body_strip = body.lower()
+    if "tak" in body_strip:
+        resp.message("ok. jesteś zapisany")
+    elif "nie" in body_strip:
+        resp.message("dzisiaj wolne. wypisuję Cie")
+        return redirect(url_for('main.cancel'))
+    else:
+        resp.message("coś się nie udało. Napisz tak lub nie, ty napisałeś: ")
+    return str(resp)
