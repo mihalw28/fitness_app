@@ -14,14 +14,20 @@ from twilio.twiml.messaging_response import MessagingResponse
 from app import csrf
 
 
+#headles chrome 
+'''Uncomment before deployment'''
+#options = webdriver.ChromeOptions()
+#options.add_argument('headless')
+
+
 @bp.route('/signup', methods=['GET', 'POST'])
 #@login_required
 def signup():
-    form = SignUpForTrainingForm(current_user.username)
-    if form.validate_on_submit():
-        # Make browser headless in future here
-        user = User.query.filter_by(username=current_user.username).first()
-        driver = webdriver.Chrome('/Users/micha/Documents/GitHub/fitness_app/chromedriver')
+    #form = SignUpForTrainingForm(current_user.username)
+    #if form.validate_on_submit():
+    users = User.query.all()
+    for user in users: 
+        driver = webdriver.Chrome('/Users/micha/Documents/GitHub/fitness_app/chromedriver')#, chrome_options=options)
         driver.get(current_app.config['GYM_LOGIN_URL'])
         time.sleep(4) #obligatory for waiting to load page
         driver.find_element_by_xpath("//div/input[@name='Login']") \
@@ -69,7 +75,7 @@ def signup():
 
         user_training = user.classes.lower()
         if not user_training in list_bookable:
-            flash("Your training is not bookable now.")
+            flash("Niestety nie możesz się teraz zapisać na swój trening.")
         else:
             # find index of desirable workout and book
             workout_index = list_all.index((user.classes).lower())    
@@ -82,29 +88,64 @@ def signup():
                                       author=current_user)
             db.session.add(training_activity)
             db.session.commit()
-            flash('We are trying to sign up you for trainig!')
+            flash('Jesteś zapisana/y na trening.')
             
             #send sms
             client = Client(current_app.config['TWILIO_ACCOUNT_SID'], current_app.config['TWILIO_AUTH_TOKEN'])
             message = client.messages.create(
-                body = 'Świtenie, jesteś zapisany na zajęcia!',
+                body = 'Hej, bierzesz udział w zajęciach {}, które odbędą się {}! Potwierdź wysyłając "tak". Jeżeli z jakiegoś powodu \
+                        nie weźmiesz udziału odpisz "nie". Jeżeli nie potwierdzisz uczestnictwa do 4 godzin przed rozpoczęciem \
+                        zajęć, towja rezerwacja zostanie automatycznie anulowana.'.format(user_training, training_datetime),
                 from_= '+48732168578',
                 to = '+' + str(user.cell_number)
             )
             print(message.sid)
         return redirect(url_for('main.index'))
-    return render_template('workouts/signup.html', title='Signup', form=form)
+    return render_template('workouts/signup.html', title='Signup')#, form=form)
 
 
-@bp.route('/cancel', methods=['GET', 'POST'])
-@login_required
-def cancel():
-    #form2 = CancelTrainingForm(current_user.username)
-    #if form2.validate_on_submit():
-    if 2 == 2:
-        # Make browser headless in future here
-        user = User.query.filter_by(username=current_user.username).first()
+@csrf.exempt # Some errors without this decorator
+@bp.route('/sms', methods=['POST', 'GET'])
+def sms():
+    resp = MessagingResponse()
+    from_number = request.values.get('From', None) #need to cut country prefix
+    strip_number = from_number[1:]
+    body = request.values.get('Body', None)
+    if "tak" in body.lower():
+        resp.message("Dzięki za potwierdzenie. Udanego treningu.")
+    elif "nie" in body.lower():
+        user = User.query.filter_by(cell_number=strip_number).first() # find user on cell_number not username
         driver = webdriver.Chrome('/Users/micha/Documents/GitHub/fitness_app/chromedriver')
+        driver.get(current_app.config['GYM_LOGIN_URL'])
+        time.sleep(3) #obligatory for waiting to load page
+        driver.find_element_by_xpath("//div/input[@name='Login']").send_keys(user.club_site_login)
+        driver.find_element_by_xpath("//div/input[@name='Password']").send_keys(user.club_site_password)
+        time.sleep(2) # just to see results no need in headless mode
+        driver.find_element_by_class_name('auth-form-actions').click()
+        time.sleep(6) # next page waiting
+        list_url = current_app.config['GYM_LIST_CLASSES'] + str(user.club_name) + '/List'
+        driver.get(list_url)
+        time.sleep(4)
+        driver.find_element_by_css_selector(".is-booked .class-item-actions").click()
+        time.sleep(1)
+        trainings = Train.query.filter_by(user_id=user.id).order_by(Train.timestamp.desc()).first()
+        # delete training from user profile
+        db.session.delete(trainings)
+        db.session.commit()
+        resp.message("Rezerwacja treningu z poprzedniej wiadomości odwołana. Miłego dnia.")
+    else:
+        resp.message("Coś źle poszło. Odpisz 'tak' jeżeli potwierdzasz udział lub 'nie' jeżeli odwołujesz rezerwację. Ty napisałaś/eś: {}".format(body))
+    return str(resp)
+
+# cancel training manually from web
+@bp.route('/cancel', methods=['GET', 'POST'])
+@login_required #- no need to login, this 
+def cancel():
+    form2 = CancelTrainingForm(current_user.username)
+    if form2.validate_on_submit():
+        # Make browser headless in future here
+        user = User.query.filter_by(username=current_user.username).first() # find user on cell_number not username
+        driver = webdriver.Chrome('/Users/micha/Documents/GitHub/fitness_app/chromedriver', chrome_options=options)
         driver.get(current_app.config['GYM_LOGIN_URL'])
         time.sleep(3) #obligatory for waiting to load page
         driver.find_element_by_xpath("//div/input[@name='Login']").send_keys(user.club_site_login)
@@ -122,22 +163,5 @@ def cancel():
         db.session.commit()
         flash('Day off. Netflix & chill.')
         return redirect(url_for('main.index'))
-    return render_template('workouts/signup.html', title='Cancel')#, form2=form2)
+    return render_template('workouts/signup.html', title='Cancel', form2=form2)
 
-@csrf.exempt # Some errors without this decorator
-@bp.route('/sms', methods=['POST', 'GET'])
-#@login_required
-def sms():
-    resp = MessagingResponse()
-    #from_number = request.values.get('From', None)
-    body = request.values.get('Body', None)
-    #number = from_number
-    body_strip = body.lower()
-    if "tak" in body_strip:
-        resp.message("ok. jesteś zapisany")
-    elif "nie" in body_strip:
-        resp.message("dzisiaj wolne. wypisuję Cie")
-        return redirect(url_for('main.cancel'))
-    else:
-        resp.message("coś się nie udało. Napisz tak lub nie, ty napisałeś: ")
-    return str(resp)

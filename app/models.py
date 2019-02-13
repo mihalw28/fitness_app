@@ -14,7 +14,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
-    cell_number = db.Column(db.String(12))
+    cell_number = db.Column(db.String(9), unique=True)
     club_site_login = db.Column(db.String(64))
     club_site_password = db.Column(db.String(128))
     #about_me = db.Column(db.String(140)) 
