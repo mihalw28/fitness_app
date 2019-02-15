@@ -1,8 +1,8 @@
 """all tables
 
-Revision ID: c4b83d0702bb
+Revision ID: 1ec760107594
 Revises: 
-Create Date: 2019-02-09 18:00:56.933270
+Create Date: 2019-02-15 16:17:14.957674
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'c4b83d0702bb'
+revision = '1ec760107594'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -23,15 +23,15 @@ def upgrade():
     sa.Column('username', sa.String(length=64), nullable=True),
     sa.Column('email', sa.String(length=120), nullable=True),
     sa.Column('password_hash', sa.String(length=128), nullable=True),
-    sa.Column('cell_number', sa.String(length=12), nullable=True),
+    sa.Column('cell_number', sa.String(length=9), nullable=True),
     sa.Column('club_site_login', sa.String(length=64), nullable=True),
     sa.Column('club_site_password', sa.String(length=128), nullable=True),
-    sa.Column('about_me', sa.String(length=140), nullable=True),
     sa.Column('club_name', sa.String(length=64), nullable=True),
     sa.Column('club_no', sa.Integer(), nullable=True),
     sa.Column('classes', sa.String(length=50), nullable=True),
     sa.Column('last_seen', sa.DateTime(), nullable=True),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('cell_number')
     )
     op.create_index(op.f('ix_user_email'), 'user', ['email'], unique=True)
     op.create_index(op.f('ix_user_username'), 'user', ['username'], unique=True)
@@ -49,6 +49,7 @@ def upgrade():
     sa.Column('your_training', sa.String(length=50), nullable=True),
     sa.Column('training_datetime', sa.DateTime(), nullable=True),
     sa.Column('timestamp', sa.DateTime(), nullable=True),
+    sa.Column('acceptance', sa.String(length=20), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')

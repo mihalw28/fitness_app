@@ -12,6 +12,8 @@ import dateparser
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 from app import csrf
+import datetime
+import pytz
 
 
 #headles chrome 
@@ -84,7 +86,7 @@ def signup():
                                                  .class-item-actions").click()
             time.sleep(4) # just for visual check
             training_datetime = parsed_dates[workout_index-1]
-            training_activity = Train(your_training = user.classes, training_datetime=training_datetime, 
+            training_activity = Train(your_training=user.classes, training_datetime=training_datetime, 
                                       author=current_user)
             db.session.add(training_activity)
             db.session.commit()
@@ -93,11 +95,11 @@ def signup():
             #send sms
             client = Client(current_app.config['TWILIO_ACCOUNT_SID'], current_app.config['TWILIO_AUTH_TOKEN'])
             message = client.messages.create(
-                body = 'Hej, bierzesz udział w zajęciach {}, które odbędą się {}! Potwierdź wysyłając "tak". Jeżeli z jakiegoś powodu \
+                body = f'Hej, bierzesz udział w zajęciach {user_training}, które odbędą się {training_datetime}! Potwierdź wysyłając "tak". Jeżeli z jakiegoś powodu \
                         nie weźmiesz udziału odpisz "nie". Jeżeli nie potwierdzisz uczestnictwa do 4 godzin przed rozpoczęciem \
-                        zajęć, towja rezerwacja zostanie automatycznie anulowana.'.format(user_training, training_datetime),
+                        zajęć, towja rezerwacja zostanie automatycznie anulowana.',
                 from_= '+48732168578',
-                to = '+' + str(user.cell_number)
+                to = '+48' + str(user.cell_number)
             )
             print(message.sid)
         return redirect(url_for('main.index'))
@@ -109,12 +111,14 @@ def signup():
 def sms():
     resp = MessagingResponse()
     from_number = request.values.get('From', None) #need to cut country prefix
-    strip_number = from_number[1:]
+    strip_number = from_number[3:]
     body = request.values.get('Body', None)
+    user = User.query.filter_by(cell_number=strip_number).first() # find user on cell_number not username
     if "tak" in body.lower():
+        Train.query.filter_by(user_id=user.id).order_by(Train.timestamp.desc()).first().acceptance = 'tak'
+        db.session.commit()
         resp.message("Dzięki za potwierdzenie. Udanego treningu.")
     elif "nie" in body.lower():
-        user = User.query.filter_by(cell_number=strip_number).first() # find user on cell_number not username
         driver = webdriver.Chrome('/Users/micha/Documents/GitHub/fitness_app/chromedriver')
         driver.get(current_app.config['GYM_LOGIN_URL'])
         time.sleep(3) #obligatory for waiting to load page
@@ -134,7 +138,7 @@ def sms():
         db.session.commit()
         resp.message("Rezerwacja treningu z poprzedniej wiadomości odwołana. Miłego dnia.")
     else:
-        resp.message("Coś źle poszło. Odpisz 'tak' jeżeli potwierdzasz udział lub 'nie' jeżeli odwołujesz rezerwację. Ty napisałaś/eś: {}".format(body))
+        resp.message(f"Coś źle poszło. Odpisz 'tak' jeżeli potwierdzasz udział lub 'nie' jeżeli odwołujesz rezerwację. Ty napisałaś/eś: {body}.")
     return str(resp)
 
 # cancel training manually from web
@@ -145,7 +149,7 @@ def cancel():
     if form2.validate_on_submit():
         # Make browser headless in future here
         user = User.query.filter_by(username=current_user.username).first() # find user on cell_number not username
-        driver = webdriver.Chrome('/Users/micha/Documents/GitHub/fitness_app/chromedriver', chrome_options=options)
+        driver = webdriver.Chrome('/Users/micha/Documents/GitHub/fitness_app/chromedriver')#, chrome_options=options)
         driver.get(current_app.config['GYM_LOGIN_URL'])
         time.sleep(3) #obligatory for waiting to load page
         driver.find_element_by_xpath("//div/input[@name='Login']").send_keys(user.club_site_login)
@@ -165,3 +169,36 @@ def cancel():
         return redirect(url_for('main.index'))
     return render_template('workouts/signup.html', title='Cancel', form2=form2)
 
+
+#unbook all unconfirmed traininges for 4 hours before trainig
+@bp.route('/unbook', methods=['GET', 'POST'])
+def unbook():
+    users = User.query.all()
+    for user in users:
+        last_training_time = Train.query.filter_by(user_id=user.id).order_by(Train.timestamp.desc()).first().trining_datetime
+        is_confirmed = Train.query.filter_by(user_id=user.id).order_by(Train.timestamp.desc()).first().acceptance
+        tz = pytz.timezone('Europe/Warsaw')
+        warsaw_now = datetime.datetime.now(tz)
+        delta_hours = (last_training_time - warsaw_now).seconds / 3600
+        if delta_hours <= 4.0:
+            if is_confirmed == "no":
+                driver = webdriver.Chrome('/Users/micha/Documents/GitHub/fitness_app/chromedriver')#, chrome_options=options)
+                driver.get(current_app.config['GYM_LOGIN_URL'])
+                time.sleep(3) #obligatory for waiting to load page
+                driver.find_element_by_xpath("//div/input[@name='Login']").send_keys(user.club_site_login)
+                driver.find_element_by_xpath("//div/input[@name='Password']").send_keys(user.club_site_password)
+                time.sleep(2) # just to see results no need in headless mode
+                driver.find_element_by_class_name('auth-form-actions').click()
+                time.sleep(6) # next page waiting
+                list_url = current_app.config['GYM_LIST_CLASSES'] + str(user.club_name) + '/List'
+                driver.get(list_url)
+                time.sleep(4)
+                driver.find_element_by_css_selector(".is-booked .class-item-actions").click()
+                time.sleep(1)
+                trainings = current_user.followed_trainings().first()
+                db.session.delete(trainings)
+                db.session.commit()
+            else:
+                pass
+        else:
+            pass

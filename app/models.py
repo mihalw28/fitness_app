@@ -75,6 +75,7 @@ class Train(db.Model):
     your_training = db.Column(db.String(50))
     training_datetime = db.Column(db.DateTime, index=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    acceptance = db.Column(db.String(20), default='nie')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
      
     def __repr__(self):
