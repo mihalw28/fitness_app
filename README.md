@@ -14,7 +14,7 @@ Many of us attending gym classes probably know the pain of trying to sign up for
 * This type of scripts with auto loggin and auto signup functions could be unwated.
 * Due to the nature of this app, it generates real costs working deployed - Twillio & AWS. 
 
-#### :hammer: How it works/will work.
+#### :hammer: How it works.
 1. Registration and creation of user profile - gym selection and class(es).
 2. The app will scrap gym website at appropriate intervals to find out if user registration for class is possible. (Registration for classes are open 36 hours before given class starts.)
 3. After correctly subscribing to training the user recievs a confirmation via :iphone:
@@ -32,6 +32,7 @@ Many of us attending gym classes probably know the pain of trying to sign up for
 * Python :snake:
 * [Flask](https://github.com/pallets/flask)
 * [SQLAlchemy](https://github.com/pallets/flask-sqlalchemy)
+* [WTForms](https://flask-wtf.readthedocs.io/en/stable/)
 * [Selenium](https://github.com/SeleniumHQ/selenium)
 * [Twilio](https://www.twilio.com/)
 * [Docker](https://www.docker.com/):whale:
