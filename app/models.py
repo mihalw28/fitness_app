@@ -14,7 +14,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
-    cell_number = db.Column(db.String(12))
+    cell_number = db.Column(db.String(9), unique=True)
     club_site_login = db.Column(db.String(64))
     club_site_password = db.Column(db.String(128))
     #about_me = db.Column(db.String(140)) 
@@ -75,6 +75,7 @@ class Train(db.Model):
     your_training = db.Column(db.String(50))
     training_datetime = db.Column(db.DateTime, index=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    acceptance = db.Column(db.String(20), default='nie')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
      
     def __repr__(self):
