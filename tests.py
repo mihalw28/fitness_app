@@ -1,17 +1,22 @@
 from datetime import datetime, timedelta
 import unittest
 from app import create_app, db
-from app.models import User, Activity
+from app.models import User, Train
 from config import Config
-
+import pytest
+#from flask import url_for
+#import flask_testing
+#from flask_testing import TestCase
 
 class TestConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite://'
 
+
 class UserModelCase(unittest.TestCase):
     def setUp(self):
         self.app = create_app(TestConfig)
+        #self.app = self.app.app.test_client()
         self.app_context = self.app.app_context()
         self.app_context.push()
         db.create_all()
@@ -38,22 +43,51 @@ class UserModelCase(unittest.TestCase):
         self.assertNotEqual(u.cell_number, ('48590390590'))
 
     def test_follow_activities(self):
+        #create 2 users
         u1 = User(username='sam', email='sam@example.com')
         u2 = User(username='magi', email='magi@example.com')
         db.session.add_all([u1, u2])
 
-        #create 2 activities
+        #create 2 trainings
         now = datetime.utcnow()
-        a1 = Activity(activ_body='yoga', author=u1, timestamp=now + timedelta(seconds=1))
-        a2 = Activity(activ_body='bodypump', author=u2, timestamp=now + timedelta(seconds=2))
-        db.session.add_all([a1, a2])
+        t1 = Train(your_training='Yoga', athlete=u1, timestamp=now + timedelta(seconds=1))
+        t2 = Train(your_training='Bodypump', athlete=u2, timestamp=now + timedelta(seconds=2))
+        db.session.add_all([t1, t2])
         db.session.commit()
 
-        #check the followed activities
-        f1 = u1.followed_activities().all()
-        f2 = u2.followed_activities().all()
-        self.assertEqual(f1, [a1])
-        self.assertEqual(f2, [a2])
+        #check followed activities
+        f1 = u1.followed_trainings().all()
+        f2 = u2.followed_trainings().all()
+        self.assertEqual(f1, [t1])
+        self.assertEqual(f2, [t2])
+
+    def test_user_model(self):
+        """
+        Test number of in User table
+        """
+        u1 = User(username='sam', email='sam@example.com')
+        u2 = User(username='magi', email='magi@example.com')
+        u3 = User(username='micha', email='micha@micha.com')
+        db.session.add_all([u1, u2, u3])
+        db.session.commit()
+        self.assertEqual(User.query.count(), 3)
+
+    def test_train_model(self):
+        """
+        Test number of records in Train table
+        """
+        # create test trainings
+        t1 = Train(your_training='Yoga')
+        t2 = Train(your_training='Bodypump')
+        t3 = Train(your_training='Yoga')
+        t4 = Train(your_training='Bodypump')
+        t5 = Train(your_training='Yoga')
+        t6 = Train(your_training='Bodypump')
+
+        # save department to database
+        db.session.add_all([t1, t2, t3, t4, t5, t6])
+        db.session.commit()
+        self.assertEqual(Train.query.count(), 6)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

@@ -16,14 +16,14 @@ import datetime
 import pytz
 
 
-#headles chrome 
+#headles chrome - 
 '''Uncomment before deployment'''
 #options = webdriver.ChromeOptions()
 #options.add_argument('headless')
 
 
 @bp.route('/signup', methods=['GET', 'POST'])
-#@login_required
+#@login_required - not required without form
 def signup():
     #form = SignUpForTrainingForm(current_user.username)
     #if form.validate_on_submit():
@@ -86,8 +86,7 @@ def signup():
                                                  .class-item-actions").click()
             time.sleep(4) # just for visual check
             training_datetime = parsed_dates[workout_index-1]
-            training_activity = Train(your_training=user.classes, training_datetime=training_datetime, 
-                                      author=current_user)
+            training_activity = Train(your_training=user.classes, training_datetime=training_datetime, user_id=user.id)
             db.session.add(training_activity)
             db.session.commit()
             flash('Jesteś zapisana/y na trening.')
@@ -97,7 +96,7 @@ def signup():
             message = client.messages.create(
                 body = f'Hej, bierzesz udział w zajęciach {user_training}, które odbędą się {training_datetime}! Potwierdź wysyłając "tak". Jeżeli z jakiegoś powodu \
                         nie weźmiesz udziału odpisz "nie". Jeżeli nie potwierdzisz uczestnictwa do 4 godzin przed rozpoczęciem \
-                        zajęć, towja rezerwacja zostanie automatycznie anulowana.',
+                        zajęć, twoja rezerwacja zostanie automatycznie anulowana.',
                 from_= '+48732168578',
                 to = '+48' + str(user.cell_number)
             )
@@ -141,7 +140,7 @@ def sms():
         resp.message(f"Coś źle poszło. Odpisz 'tak' jeżeli potwierdzasz udział lub 'nie' jeżeli odwołujesz rezerwację. Ty napisałaś/eś: {body}.")
     return str(resp)
 
-# cancel training manually from web
+# cancel training manually from web app
 @bp.route('/cancel', methods=['GET', 'POST'])
 @login_required #- no need to login, this 
 def cancel():
@@ -170,18 +169,17 @@ def cancel():
     return render_template('workouts/signup.html', title='Cancel', form2=form2)
 
 
-#unbook all unconfirmed traininges for 4 hours before trainig
+#unbook all unconfirmed traininges - without UI
 @bp.route('/unbook', methods=['GET', 'POST'])
 def unbook():
     users = User.query.all()
     for user in users:
-        last_training_time = Train.query.filter_by(user_id=user.id).order_by(Train.timestamp.desc()).first().trining_datetime
+        last_training_time = Train.query.filter_by(user_id=user.id).order_by(Train.timestamp.desc()).first().training_datetime
         is_confirmed = Train.query.filter_by(user_id=user.id).order_by(Train.timestamp.desc()).first().acceptance
-        tz = pytz.timezone('Europe/Warsaw')
-        warsaw_now = datetime.datetime.now(tz)
-        delta_hours = (last_training_time - warsaw_now).seconds / 3600
-        if delta_hours <= 4.0:
-            if is_confirmed == "no":
+        delta_hours = (last_training_time - datetime.datetime.now()).seconds / 3600
+        # delta_hour = delta_hours.seconds / 3600
+        if delta_hours <= 24.0:
+            if is_confirmed == "nie":
                 driver = webdriver.Chrome('/Users/micha/Documents/GitHub/fitness_app/chromedriver')#, chrome_options=options)
                 driver.get(current_app.config['GYM_LOGIN_URL'])
                 time.sleep(3) #obligatory for waiting to load page
@@ -198,7 +196,7 @@ def unbook():
                 trainings = current_user.followed_trainings().first()
                 db.session.delete(trainings)
                 db.session.commit()
-            else:
-                pass
+                return redirect(url_for('main.index'))
         else:
             pass
+    return
