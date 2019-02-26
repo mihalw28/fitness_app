@@ -8,7 +8,6 @@ from app.models import User, Train
 
 class EditProfileForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
-    #about_me = TextAreaField('About me', validators=[Length(min=0, max=140)])
     classes = SelectField('My classes', choices=[('Kalistenika', 'Kalistenika'), ('Pilates', 'Pilates'), 
         ('ZUMBA', 'ZUMBA'), ('ABT', 'ABT'), ('Yoga', 'YOGA'), ('Bodypump', 'Bodypump'), ('Bodybalance', 'Bodybalance'), 
         ('Stretching', 'Stretching'), ('Trening Funkcjonalny', 'Trening Funkcjonalny'), ('Saf Aqua', 'Saf Aqua'),
@@ -26,12 +25,6 @@ class EditProfileForm(FlaskForm):
             user = User.query.filter_by(username=self.username.data).first()
             if user is not None:
                 raise ValidationError('Please use a different username.')
-
-
-class ActivityForm(FlaskForm):
-    activity = TextAreaField('Say something', validators=[
-        DataRequired(), Length(min=1, max=140)])
-    submit = SubmitField('Submit')
 
 
 # signup form for workout

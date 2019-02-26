@@ -11,8 +11,11 @@
                     {{ activity.author.username }}
                 </a>
             {% endset %}
-            <p>Uczestniczyłaś/eś w: {{ activity.your_training }} {{ activity.training_datetime }}</p>
-            <p>Data zapisu: {{ moment(activity.timestamp).fromNow() }}</p>
+            <p>
+                Uczestniczyłaś/eś w: {{ activity.your_training }} {{ activity.training_datetime }}
+                Data zapisu: {{ moment(activity.timestamp).fromNow() }}
+                <button type="button" class="btn btn-warning">Anuluj rezerwację</button>
+            </p>
             <br>
         </td>
     </tr>

@@ -3,9 +3,9 @@ from flask import render_template, flash, redirect, url_for, request, \
     current_app, jsonify, g
 from flask_login import current_user, login_required
 from app import db
-from app.main.forms import EditProfileForm, ActivityForm, SignUpForm
+from app.main.forms import EditProfileForm, SignUpForm
 from app.workouts.forms import SignUpForTrainingForm
-from app.models import User, Activity, Train
+from app.models import User, Train
 from app.main import bp
 
 
@@ -35,7 +35,7 @@ def index():
 @login_required
 def explore():
     page = request.args.get('page', 1, type=int)
-    activities = Activity.query.order_by(Activity.timestamp.desc()).paginate(
+    activities = Train.query.order_by(Train.timestamp.desc()).paginate(
         page, current_app.config['ACTIVITIES_PER_PAGE'], False)
     next_url = url_for('main.explore', page=activities.next_num) \
         if activities.has_next else None

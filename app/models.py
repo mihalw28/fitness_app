@@ -17,17 +17,14 @@ class User(UserMixin, db.Model):
     cell_number = db.Column(db.String(9), unique=True)
     club_site_login = db.Column(db.String(64))
     club_site_password = db.Column(db.String(128))
-    #about_me = db.Column(db.String(140)) 
     club_name = db.Column(db.String(64))
     club_no = db.Column(db.Integer, unique=False)
     classes = db.Column(db.String(50))
     last_seen = db.Column(db.DateTime, default=datetime.utcnow) # change to last visit in a gym :)
-    activities = db.relationship('Activity', backref='author', lazy='dynamic')
-    trainings = db.relationship('Train', backref='author', lazy='dynamic')
-
+    trainings = db.relationship('Train', backref='athlete', lazy='dynamic')
 
     def __repr__(self):
-        return '<User {}>'.format(self.username)
+        return f'<User {self.username}>'
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -37,8 +34,7 @@ class User(UserMixin, db.Model):
 
     def avatar(self, size):
         digest = md5(self.email.lower().encode('utf-8')).hexdigest()
-        return 'https://www.gravatar.com/avatar/{}?d=retro&s={}'.format(
-            digest, size)
+        return f'https://www.gravatar.com/avatar/{digest}?d=retro&s={size}'
     
     def followed_trainings(self):
         own = Train.query.filter_by(user_id=self.id)
@@ -61,14 +57,6 @@ class User(UserMixin, db.Model):
 def load_user(id):
     return User.query.get(int(id))
 
-class Activity(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    activ_body = db.Column(db.String(140))
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-
-    def __repr__(self):
-        return '<Activity {}>'.format(self.body)
 
 class Train(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -79,4 +67,4 @@ class Train(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
      
     def __repr__(self):
-        return '<Training {}>'.format(self.body)
+        return f'<Training {self.your_training}>'
