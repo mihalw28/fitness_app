@@ -34,8 +34,10 @@ class EditProfileForm(FlaskForm):
 
 
 # signup form for workout
+"""
 class SignUpForm(FlaskForm):
     training = SelectField('Your workouts', choices=[('pi', 'Pilates'),
                            ('zu', 'ZUMBA'), ('ab', 'ABT')],
                            validators=[InputRequired()])
     submit2 = SubmitField("Sign Up")
+"""

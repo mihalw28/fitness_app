@@ -1,10 +1,1 @@
-[
-  "tests.py::TestModels::test_avatar",
-  "tests.py::TestModels::test_cell_number",
-  "tests.py::TestModels::test_follow_activities",
-  "tests.py::TestModels::test_login_view",
-  "tests.py::TestModels::test_logout_view",
-  "tests.py::TestModels::test_password_hashing",
-  "tests.py::TestModels::test_train_model",
-  "tests.py::TestModels::test_user_model"
-]
+[]

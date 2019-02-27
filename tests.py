@@ -4,7 +4,7 @@ from app import create_app, db
 from app.models import User, Train
 from config import Config
 import pytest
-from flask import url_for, current_app, request
+from flask import url_for, current_app, request, abort
 import flask_testing
 from flask_testing import TestCase
 
@@ -97,24 +97,80 @@ class TestModels(TestBase):
         db.session.commit()
         self.assertEqual(Train.query.count(), 6)
 
+
+class TestViews(TestBase):
     def test_login_view(self):
         """
         Test that login page is accessible without login
         """
-        with current_app.test_client() as client:
-            response = self.client.get(url_for('auth.login'))
-            self.assertEqual(response.status_code, 200)
+        # with current_app.app_context():
+        response = self.client.get(url_for('auth.login'))
+        self.assertEqual(response.status_code, 200)
 
     def test_logout_view(self):
         """
-        Test inaccessibility of logout link without logging
+        Test inaccessibility of logout link without login
         """
         target_url = url_for('auth.logout')
-        redirect_url = url_for('auth.login')  # , next=target_url)
-        with current_app.test_client() as client:
-            response = self.client.get(target_url)
-            self.assertEqual(response.status_code, 302)
-            self.assertRedirects(response, redirect_url)
+        redirect_url = url_for('auth.login', next=target_url)
+        # with current_app.app_context():
+        response = self.client.get(target_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, redirect_url)
+
+    def test_home_page(self):
+        """
+        Test that dashboard is inaccessible without login
+        and redirects to login page then to dashboard
+        """
+        target_url = url_for('main.index')
+        redirect_url = url_for('auth.login', next=target_url)
+        # with current_app.app_context():
+        response = self.client.get(target_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, redirect_url)
+
+    def test_profile_view(self):
+        """
+        Test user profile inaccessibility without login
+        and redirects to login page then to profile page
+        """
+        target_url = url_for('main.user', username='Verylongname')
+        redirect_url = url_for('auth.login', next=target_url)
+        response = self.client.get(target_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, redirect_url)
+
+    def test_edit_profile_view(self):
+        """
+        Test user edit_profile inaccessibility without login
+        and redirects to login page then to profile page
+        """
+        target_url = url_for('main.edit_profile')
+        redirect_url = url_for('auth.login', next=target_url)
+        response = self.client.get(target_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, redirect_url)
+
+
+class TestErrors(TestBase):
+
+    def test_not_found_error(self):
+        response = self.client.get('/errors/404')
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(b"File Not Found" in response.data)
+
+    def test_internal_error(self):
+        # create route to abort the request with the 500 Error
+        @self.app.route('/errors/500')
+        def internal_error():
+            abort(500)
+
+        response = self.client.get('/errors/500')
+        self.assertEqual(response.status_code, 500)
+        # There isn't any option of typing b"foo" below, because of ASCII
+        # literal characters (presence of polich letters)
+        self.assertTrue("nieprzewidziany błąd" in response.get_data(as_text=True))
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
