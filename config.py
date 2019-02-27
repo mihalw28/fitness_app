@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 basedir = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(basedir, '.env'))
 
+
 class Config(object):
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
@@ -18,5 +19,5 @@ class Config(object):
     ACTIVITIES_PER_PAGE = 8
     GYM_LOGIN_URL = os.environ.get('GYM_LOGIN_URL')
     GYM_LIST_CLASSES = os.environ.get('GYM_LIST_CLASSES')
-    TWILIO_ACCOUNT_SID =  os.environ.get('TWILIO_ACCOUNT_SID')
+    TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
     TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')

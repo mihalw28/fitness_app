@@ -8,7 +8,6 @@ import jwt
 from flask import current_app
 
 
-
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
@@ -20,7 +19,7 @@ class User(UserMixin, db.Model):
     club_name = db.Column(db.String(64))
     club_no = db.Column(db.Integer, unique=False)
     classes = db.Column(db.String(50))
-    last_seen = db.Column(db.DateTime, default=datetime.utcnow) # change to last visit in a gym :)
+    last_seen = db.Column(db.DateTime, default=datetime.utcnow)  # change to last visit
     trainings = db.relationship('Train', backref='athlete', lazy='dynamic')
 
     def __repr__(self):
@@ -35,15 +34,16 @@ class User(UserMixin, db.Model):
     def avatar(self, size):
         digest = md5(self.email.lower().encode('utf-8')).hexdigest()
         return f'https://www.gravatar.com/avatar/{digest}?d=retro&s={size}'
-    
+
     def followed_trainings(self):
         own = Train.query.filter_by(user_id=self.id)
         return own.order_by(Train.timestamp.desc())
 
     def get_reset_password_token(self, expires_in=600):
         return jwt.encode({'reset_password': self.id, 'exp': time() + expires_in},
-            current_app.config['SECRET_KEY'], algorithm='HS256').decode('utf-8')
-    
+                          current_app.config['SECRET_KEY'],
+                          algorithm='HS256').decode('utf-8')
+
     @staticmethod
     def verify_reset_password_token(token):
         try:
@@ -52,6 +52,7 @@ class User(UserMixin, db.Model):
         except:
             return
         return User.query.get(id)
+
 
 @login.user_loader
 def load_user(id):
@@ -65,6 +66,6 @@ class Train(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     acceptance = db.Column(db.String(20), default='nie')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-     
+
     def __repr__(self):
         return f'<Training {self.your_training}>'
