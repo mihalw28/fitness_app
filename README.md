@@ -23,7 +23,7 @@ Many of us attending gym classes probably know the pain of trying to sign up for
 
 #### Main goals to accomplish:
 1. Firstly I had an idea of deploying app on Heroku, but that idea is not alive now. Foremost it's necessary to create API endpoints for scrapping gym website using AWS Lambda.  I will try to deploy the whole app using serverless technology (@ AWS Λ); both scrapping module and web app module.
-3. Tests. I haven't written independently any test before, hence lack of tests so far in this repo. I'm currently improving this skill, so tests will be added. 
+3. Tests. ~~I haven't written independently any test before, hence lack of tests so far in this repo.~~ I'm currently improving this skill. Some tests have been added recently. 
 2. Create API endpoints to handle HTTP requests.
 3. Set time intervals using cron jobs in Lambda.
 4. Make some user friendly frontend. 
@@ -40,7 +40,8 @@ Many of us attending gym classes probably know the pain of trying to sign up for
 
 #### Credits:
  - Fitness App is based on microblog application skeleton from [The Flask Mega Tutorial](https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world) by Miguel Grinberg
- - Headless chromium browser for python from 21Buttons Team [link](https://github.com/21Buttons/pychromeless)
+ - Headless chromium browser for python from 21Buttons Team [click](https://github.com/21Buttons/pychromeless)
+ - Basic testing flask web app with Selenium [click](https://scotch.io/tutorials/test-a-flask-app-with-selenium-webdriver-part-1)
 
 
 #### Additional info
