@@ -3,7 +3,7 @@ from app import db
 from app.auth import bp
 from app.auth.forms import LoginForm, RegistrationForm, \
     ResetPasswordRequestForm, ResetPasswordForm
-from flask_login import current_user, login_user, logout_user
+from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User
 from werkzeug.urls import url_parse
 from app.auth.email import send_password_reset_email
@@ -21,13 +21,14 @@ def login():
             return redirect(url_for('auth.login'))
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
-        if not next_page or url_parse(next_page).netloc != '':  # security issues
+        if not next_page or url_parse(next_page).netloc != '':  # Security reasons
             next_page = url_for('main.index')
         return redirect(next_page)
     return render_template('auth/login.html', title='Sign In', form=form)
 
 
 @bp.route('/logout')
+@login_required  # See next_page argument, redirection issues
 def logout():
     logout_user()
     return redirect(url_for('auth.login'))

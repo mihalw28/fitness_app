@@ -345,3 +345,18 @@ app.db
 fitness_app.log*
 
 chromedriver.exe
+
+# Unit test / coverage reports
+.coverage
+.tox
+.coverage.*
+nosetests.xml
+coverage.xml
+htmlcov
+
+
+.cache
+.pytest
+.pytest_cache/
+__pycache__
+.vscode
