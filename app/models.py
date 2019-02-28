@@ -6,9 +6,34 @@ from hashlib import md5
 from time import time
 import jwt
 from flask import current_app
+from flask import url_for
 
 
-class User(UserMixin, db.Model):
+class PaginatedAPIMixin(object):
+    @staticmethod
+    def to_collection_dict(query, page, per_page, endpoint, **kwargs):
+        resources = query.paginate(page, per_page, False)
+        data = {
+            'items': [item.to_dict() for item in resources.items],
+            '_meta': {
+                'page': page,
+                'per_page': per_page,
+                'total_pages': resources.pages,
+                'total_items': resources.total
+            },
+            '_links': {
+                'self': url_for(endpoint, page=page, per_page=per_page,
+                                **kwargs),
+                'next': url_for(endpoint, page=page + 1, per_page=per_page,
+                                **kwargs) if resources.has_next else None,
+                'prev': url_for(endpoint, page=page - 1, per_page=per_page,
+                                **kwargs) if resources.has_prev else None
+            }
+        }
+        return data
+
+
+class User(PaginatedAPIMixin, UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
@@ -53,13 +78,42 @@ class User(UserMixin, db.Model):
             return
         return User.query.get(id)
 
+    def to_dict(self, include_email=False):
+        data = {
+            'id': self.id,
+            'username': self.username,
+            'last_seen': self.last_seen.isoformat() + 'Z',
+            'cell_number': self.cell_number,
+            'club_site_login': self.club_site_login,
+            'club_site_password': self.club_site_password,
+            'club_name': self.club_name,
+            'club_no': self.club_no,
+            'classes': self.classes,
+            '_links': {
+                'self': url_for('api.get_user', id=self.id),
+                'trainings': url_for('api.get_user_trainings', id=self.id),
+                'avatar': self.avatar(128)
+            }
+        }
+        if include_email:
+            data['email'] = self.email
+        return data
+
+    def from_dict(self, data, new_user=False):
+        for field in ['username', 'email', 'cell_number', 'club_name',
+                      'club_no', 'classes']:
+            if field in data:
+                setattr(self, field, data[field])
+        if new_user and 'password' in data:
+            self.set_password(data['password'])
+
 
 @login.user_loader
 def load_user(id):
     return User.query.get(int(id))
 
 
-class Train(db.Model):
+class Train(PaginatedAPIMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     your_training = db.Column(db.String(50))
     training_datetime = db.Column(db.DateTime, index=True)
@@ -69,3 +123,26 @@ class Train(db.Model):
 
     def __repr__(self):
         return f'<Training {self.your_training}>'
+
+    def to_dict(self, include_email=False):
+        data = {
+            'id': self.id,
+            'user_id': self.user_id,
+            'your_training': self.your_training,
+            'training_datetime': self.training_datetime,
+            'acceptance': self.acceptance,
+            '_links': {
+                'self': url_for('api.get_user_trainings', id=self.id)
+            }
+        }
+        return data
+
+
+"""
+    def trainings_from_dict(self, data, new_user=False):
+        for field in ['username', 'email']:
+            if field in data:
+                setattr(self, field, data[field])
+        if new_user and 'password' in data:
+            self.set_password(data['password'])
+"""

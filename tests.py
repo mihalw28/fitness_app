@@ -3,9 +3,9 @@ import unittest
 from app import create_app, db
 from app.models import User, Train
 from config import Config
-import pytest
-from flask import url_for, current_app, request, abort
-import flask_testing
+# import pytest
+from flask import url_for, current_app, abort  # , request
+# import flask_testing
 from flask_testing import TestCase
 
 
@@ -18,7 +18,8 @@ class TestBase(TestCase):
     def create_app(self):
         app = create_app(TestConfig)
         with app.app_context():
-            client = current_app.test_client()
+            # client = current_app.test_client()
+            current_app.test_client()
         return app
 
     def setUp(self):
@@ -171,6 +172,7 @@ class TestErrors(TestBase):
         # There isn't any option of typing b"foo" below, because of ASCII
         # literal characters (presence of polich letters)
         self.assertTrue("nieprzewidziany błąd" in response.get_data(as_text=True))
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
