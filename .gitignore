@@ -351,8 +351,9 @@ chromedriver.exe
 .cache
 .pytest
 .pytest_cache/
-__pycache__/
-.vscode
+
+.vscode/
+
 .py[cod]
 
 # Mr Developer
