@@ -1,8 +1,8 @@
 """all tables
 
-Revision ID: 1ec760107594
+Revision ID: 3f658a901015
 Revises: 
-Create Date: 2019-02-15 16:17:14.957674
+Create Date: 2019-03-04 13:47:25.014124
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '1ec760107594'
+revision = '3f658a901015'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -30,20 +30,14 @@ def upgrade():
     sa.Column('club_no', sa.Integer(), nullable=True),
     sa.Column('classes', sa.String(length=50), nullable=True),
     sa.Column('last_seen', sa.DateTime(), nullable=True),
+    sa.Column('token', sa.String(length=32), nullable=True),
+    sa.Column('token_expiration', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('cell_number')
     )
     op.create_index(op.f('ix_user_email'), 'user', ['email'], unique=True)
+    op.create_index(op.f('ix_user_token'), 'user', ['token'], unique=True)
     op.create_index(op.f('ix_user_username'), 'user', ['username'], unique=True)
-    op.create_table('activity',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('activ_body', sa.String(length=140), nullable=True),
-    sa.Column('timestamp', sa.DateTime(), nullable=True),
-    sa.Column('user_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_index(op.f('ix_activity_timestamp'), 'activity', ['timestamp'], unique=False)
     op.create_table('train',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('your_training', sa.String(length=50), nullable=True),
@@ -64,9 +58,8 @@ def downgrade():
     op.drop_index(op.f('ix_train_training_datetime'), table_name='train')
     op.drop_index(op.f('ix_train_timestamp'), table_name='train')
     op.drop_table('train')
-    op.drop_index(op.f('ix_activity_timestamp'), table_name='activity')
-    op.drop_table('activity')
     op.drop_index(op.f('ix_user_username'), table_name='user')
+    op.drop_index(op.f('ix_user_token'), table_name='user')
     op.drop_index(op.f('ix_user_email'), table_name='user')
     op.drop_table('user')
     # ### end Alembic commands ###
