@@ -7,16 +7,14 @@ load_dotenv(os.path.join(basedir, '.env'))
 
 class Config(object):
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess'
-    # SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-    #     'sqlite:///' + os.path.join(basedir, 'app.db')
+    #SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+    #    'sqlite:///' + os.path.join(basedir, 'app.db')
     PSQL_USER = os.environ.get('PSQL_USER')
     PSQL_PW = os.environ.get('PSQL_PW')
     PSQL_DB = os.environ.get('PSQL_DB')
     PSQL_HOST = os.environ.get('PSQL_HOST')
-    PSQL_PORT = os.environ.get('PSQL_PORT')
-    SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://" + str(PSQL_USER) + ":" \
-        + str(PSQL_PW) + "@" + str(PSQL_HOST) + ":" + str(PSQL_PORT) + "/" \
-        + str(PSQL_DB)
+    SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{user}:{pw}@{host}:5432/{dbname}".format(user=PSQL_USER, pw=PSQL_PW, 
+                                                      host=PSQL_HOST, dbname=PSQL_DB)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAIL_SERVER = os.environ.get('MAIL_SERVER')
     MAIL_PORT = int(os.environ.get('MAIL_PORT') or 25)
