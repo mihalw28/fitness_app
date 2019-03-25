@@ -14,86 +14,104 @@ from twilio.twiml.messaging_response import MessagingResponse
 from app import csrf
 import datetime
 import pytz
+from app import scheduler
+import os
 
 
-# Headles chrome -
-'''Uncomment before deployment'''
-# options = webdriver.ChromeOptions()
-# options.add_argument('headless')
-
-
+#Need to move this section to different container later
+@scheduler.task('cron', id='sign_up_users', minute='*/10')
 @bp.route('/signup', methods=['GET', 'POST'])
-# @login_required - not required without form
 def signup():
-    # form = SignUpForTrainingForm(current_user.username)
-    # if form.validate_on_submit():
-    users = User.query.all()
-    for user in users:
-        if (user.club_name is not None) and (user.classes is not None):
-            driver = webdriver.Chrome('/Users/micha/Documents/GitHub/fitness_app/chromedriver')  # , chrome_options=options)
-            driver.get(current_app.config['GYM_LOGIN_URL'])
-            time.sleep(4)  # Obligatory for waiting to load page
-            driver.find_element_by_xpath("//div/input[@name='Login']") \
-                .send_keys(user.club_site_login)
-            driver.find_element_by_xpath("//div/input[@name='Password']") \
-                .send_keys(user.club_site_password)
-            time.sleep(2)  # Just to see results no need in headless mode
-            driver.find_element_by_class_name('auth-form-actions').click()
-            time.sleep(6)  # Next page waiting
-            list_url = current_app.config['GYM_LIST_CLASSES'] + str(user.club_name) + '/List'
-            driver.get(list_url)
-            time.sleep(4)
+    with scheduler.app.test_request_context():
+        users = User.query.all()
+        for user in users:
+            if (user.club_name is not None) and (user.classes is not None):  # , chrome_options=options)
+                chrome_options = webdriver.ChromeOptions()
+                #driver_path = '/Users/micha/Documents/GitHub/fitness_app/bin/chromedriver'  # localhost
+                driver_path = "/fitness_app/bin/"  # docker
+                chrome_options.binary_location = os.getcwd() + "/bin/headless-chromium"
+                # chrome_options.binary_location = "/home/fitness_app/bin/headless-chromium"
+                chrome_options.add_argument('--headless')
+                chrome_options.add_argument('--no-sandbox')
+                chrome_options.add_argument('--disable-gpu')
+                chrome_options.add_argument('--window-size=1280x1696')
+                chrome_options.add_argument('--user-data-dir=/tmp/user-data')
+                chrome_options.add_argument('--hide-scrollbars')
+                chrome_options.add_argument('--enable-logging')
+                chrome_options.add_argument('--log-level=0')
+                chrome_options.add_argument('--v=99')
+                chrome_options.add_argument('--single-process')
+                chrome_options.add_argument('--data-path=/tmp/data-path')
+                chrome_options.add_argument('--ignore-certificate-errors')
+                chrome_options.add_argument('--homedir=/tmp')
+                chrome_options.add_argument('--disk-cache-dir=/tmp/cache-dir')
+                chrome_options.add_argument('--disable-dev-shm-usage')
+                chrome_options.add_argument('user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36')
+
+                driver = webdriver.Chrome(chrome_options=chrome_options, executable_path=driver_path)  # , options=chrome_options)
+                driver.get(current_app.config['GYM_LOGIN_URL'])
+                time.sleep(4)  # Obligatory for waiting to load page
+                driver.find_element_by_xpath("//div/input[@name='Login']") \
+                    .send_keys(user.club_site_login)
+                driver.find_element_by_xpath("//div/input[@name='Password']") \
+                    .send_keys(user.club_site_password)
+                time.sleep(2)  # Just to see results no need in headless mode
+                driver.find_element_by_class_name('auth-form-actions').click()
+                time.sleep(6)  # Next page waiting
+                list_url = current_app.config['GYM_LIST_CLASSES'] + '#/Classes/' +str(user.club_name) + '/List'
+                driver.get(list_url)
+                time.sleep(4)
 
             # Find date string
-            date = driver.find_element_by_css_selector(".cp-class-container > div:nth-of-type(2) \
-                                                        .class-list-day-title").text.lower()
+                date = driver.find_element_by_css_selector(".cp-class-container > div:nth-of-type(2) \
+                                                            .class-list-day-title").text.lower()
             # List all activities in one day
-            list_all = []
-            list_all_day_act = driver.find_elements_by_css_selector(".cp-class-container > div:nth-of-type(2) \
+                list_all = []
+                list_all_day_act = driver.find_elements_by_css_selector(".cp-class-container > div:nth-of-type(2) \
                                                                     .calendar-item-name")
-            for element in list_all_day_act:
-                list_all.append((element.text).lower())
+                for element in list_all_day_act:
+                    list_all.append((element.text).lower())
             # list all bookable activities and their start time
-            list_bookable = []
-            list_all_bookable_act = driver.find_elements_by_css_selector(".cp-class-container > div:nth-of-type(2) \
+                list_bookable = []
+                list_all_bookable_act = driver.find_elements_by_css_selector(".cp-class-container > div:nth-of-type(2) \
                                                                         .is-bookable .calendar-item-name")
-            for element in list_all_bookable_act:
-                list_bookable.append((element.text).lower())
+                for element in list_all_bookable_act:
+                    list_bookable.append((element.text).lower())
             # List all activities' start time
-            list_all_start = []
-            list_hours = driver.find_elements_by_css_selector(".cp-class-container > div:nth-of-type(2) \
-                                                            .calendar-item-start")
-            for element in list_hours:
-                list_all_start.append(element.text)
+                list_all_start = []
+                list_hours = driver.find_elements_by_css_selector(".cp-class-container > div:nth-of-type(2) \
+                                                                .calendar-item-start")
+                for element in list_hours:
+                    list_all_start.append(element.text)
 
             # Combine date & start hour strings, then list parsed
-            date_hour = []
-            for hour in list_all_start:
-                date_hour.append(date + ' ' + hour)
+                date_hour = []
+                for hour in list_all_start:
+                    date_hour.append(date + ' ' + hour)
 
-            parsed_dates = []
-            for element in date_hour:
-                right_format_data = dateparser.parse(element, languages=['pl'])
-                parsed_dates.append(right_format_data)
+                parsed_dates = []
+                for element in date_hour:
+                    right_format_data = dateparser.parse(element, languages=['pl'])
+                    parsed_dates.append(right_format_data)
 
-            user_training = user.classes.lower()
-            if user_training not in list_bookable:
-                flash("Niestety nie możesz się teraz zapisać na swój trening.")
-            else:
+                user_training = user.classes.lower()
+                if user_training not in list_bookable:
+                    flash("Niestety nie możesz się teraz zapisać na swój trening.")
+                else:
                 # Find index of desirable workout and book
-                workout_index = list_all.index((user.classes).lower())
-                web_index = str(workout_index + 2)  # From gym website
-                driver.find_element_by_css_selector(".cp-class-container > div:nth-of-type(2) > div:nth-of-type(" + web_index + ") \
-                                                    .class-item-actions").click()
-                time.sleep(4)  # Just for visual check
-                training_datetime = parsed_dates[workout_index-1]
-                training_activity = Train(your_training=user.classes,
-                                        training_datetime=training_datetime,
-                                        user_id=user.id)
-                db.session.add(training_activity)
-                db.session.commit()
-                flash('Jesteś zapisana/y na trening.')
-
+                    workout_index = list_all.index((user.classes).lower())
+                    web_index = str(workout_index + 2)  # From gym website
+                    driver.find_element_by_css_selector(".cp-class-container > div:nth-of-type(2) > div:nth-of-type(" + web_index + ") \
+                                                        .class-item-actions").click()
+                    time.sleep(4)  # Just for visual check
+                    training_datetime = parsed_dates[workout_index-1]
+                    training_activity = Train(your_training=user.classes,
+                                            training_datetime=training_datetime,
+                                            user_id=user.id)
+                    db.session.add(training_activity)
+                    db.session.commit()
+                    flash('Jesteś zapisana/y na trening.')
+                '''
                 # Send sms
                 client = Client(current_app.config['TWILIO_ACCOUNT_SID'],
                                 current_app.config['TWILIO_AUTH_TOKEN'])
@@ -107,11 +125,12 @@ def signup():
                     from_='+48732168578',
                     to='+48' + str(user.cell_number)
                 )
-                print(message.sid)
-        else:
-            continue
-        return redirect(url_for('main.index'))
-    return render_template('workouts/signup.html', title='Signup')  # , form=form)
+                print(message.sid)'''
+            else:
+                continue
+            driver.quit()
+            return redirect(url_for('main.index'))
+        return render_template('workouts/signup.html', title='Signup')  # , form=form)
 
 
 @csrf.exempt  # Some errors without this decorator

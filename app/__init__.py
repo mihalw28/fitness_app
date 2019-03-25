@@ -10,6 +10,7 @@ from flask_mail import Mail
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from flask_wtf.csrf import CSRFProtect
+from flask_apscheduler import APScheduler
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -19,12 +20,12 @@ mail = Mail()
 bootstrap = Bootstrap()
 moment = Moment()
 csrf = CSRFProtect()
+scheduler = APScheduler()
 
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
-
     db.init_app(app)
     migrate.init_app(app, db)
     login.init_app(app)
@@ -32,6 +33,8 @@ def create_app(config_class=Config):
     bootstrap.init_app(app)
     moment.init_app(app)
     csrf.init_app(app)
+    scheduler.init_app(app)
+    scheduler.start()
 
     from app.errors import bp as errors_bp
     app.register_blueprint(errors_bp)

@@ -13,8 +13,8 @@ class Config(object):
     PSQL_PW = os.environ['PSQL_PW']
     PSQL_DB = os.environ['PSQL_DB']
     PSQL_HOST = os.environ['PSQL_HOST']
-    SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{user}:{pw}@{host}:5432/{dbname}".format(user=PSQL_USER, pw=PSQL_PW, 
-                                                      host=PSQL_HOST, dbname=PSQL_DB)
+    SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{user}:{pw}@{host}:5432/{dbname}".\
+        format(user=PSQL_USER, pw=PSQL_PW, host=PSQL_HOST, dbname=PSQL_DB)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAIL_SERVER = os.environ['MAIL_SERVER']
     MAIL_PORT = int(os.environ['MAIL_PORT'] or 25)
@@ -25,5 +25,6 @@ class Config(object):
     ACTIVITIES_PER_PAGE = 8
     GYM_LOGIN_URL = os.environ['GYM_LOGIN_URL']
     GYM_LIST_CLASSES = os.environ['GYM_LIST_CLASSES']
-    TWILIO_ACCOUNT_SID = os.environ['TWILIO_ACCOUNT_SID']
-    TWILIO_AUTH_TOKEN = os.environ['TWILIO_AUTH_TOKEN']
+    TWILIO_ACCOUNT_SID = os.environ['TWILIO_ACCOUNT_SID_TEMP']
+    TWILIO_AUTH_TOKEN = os.environ['TWILIO_AUTH_TOKEN_TEMP']
+    SCHEDULER_API_ENABLED = True

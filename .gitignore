@@ -420,3 +420,6 @@ docs/_build/
 
 # PyBuilder
 target/
+
+#AWS Elastic Beanstalk
+.ebextensions/
