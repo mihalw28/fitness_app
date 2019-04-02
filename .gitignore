@@ -421,5 +421,12 @@ docs/_build/
 # PyBuilder
 target/
 
-#AWS Elastic Beanstalk
+# AWS Elastic Beanstalk
 .ebextensions/
+
+# Make
+Makefile
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

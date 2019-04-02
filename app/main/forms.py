@@ -3,8 +3,9 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField, BooleanField, \
     SelectField, HiddenField
 from wtforms.validators import ValidationError, DataRequired, Length, \
-    InputRequired
+    InputRequired, Regexp
 from app.models import User, Train
+
 
 
 class EditProfileForm(FlaskForm):
@@ -20,6 +21,8 @@ class EditProfileForm(FlaskForm):
     club_name = SelectField('My gym', choices=[('22', 'Posnania'),
                             ('24', 'Bałtyk'), ('4', 'GreenPoint'),
                             ('1', 'Kinepolis')], validators=[DataRequired()])
+    cell_number = StringField('Numer telefonu komórkowego', validators=[
+                              DataRequired(), Regexp('^[0-9]{9}$')])
     submit = SubmitField('Submit')
 
     def __init__(self, original_username, *args, **kwargs):

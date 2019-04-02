@@ -70,6 +70,7 @@ def edit_profile():
         current_user.username = form.username.data
         current_user.club_name = form.club_name.data
         current_user.classes = form.classes.data
+        current_user.cell_number = form.cell_number.data
         db.session.commit()
         flash('Zmiany w Twoim profilu zostały zapisane.')
         return redirect(url_for('main.edit_profile'))
@@ -77,5 +78,6 @@ def edit_profile():
         form.username.data = current_user.username
         current_user.club_name = form.club_name.data
         current_user.classes = form.classes.data
+        current_user.cell_number = form.cell_number.data
     return render_template('edit_profile.html', title='Edytuj profil',
                            form=form)
