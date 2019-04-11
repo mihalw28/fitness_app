@@ -1,10 +1,10 @@
 from datetime import datetime
 from flask import render_template, flash, redirect, url_for, request, \
-    current_app, jsonify, g
+    current_app  # , jsonify, g
 from flask_login import current_user, login_required
 from app import db
-from app.main.forms import EditProfileForm  # , SignUpForm
-from app.workouts.forms import SignUpForTrainingForm
+from app.main.forms import EditProfileForm
+# from app.workouts.forms import SignUpForTrainingForm
 from app.models import User, Train
 from app.main import bp
 
@@ -65,7 +65,7 @@ def user(username):
 @bp.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
 def edit_profile():
-    form = EditProfileForm(current_user.username)
+    form = EditProfileForm(current_user.username, current_user.cell_number)
     if form.validate_on_submit():
         current_user.username = form.username.data
         current_user.club_name = form.club_name.data
@@ -78,6 +78,6 @@ def edit_profile():
         form.username.data = current_user.username
         current_user.club_name = form.club_name.data
         current_user.classes = form.classes.data
-        current_user.cell_number = form.cell_number.data
+        form.cell_number.data = current_user.cell_number
     return render_template('edit_profile.html', title='Edytuj profil',
                            form=form)

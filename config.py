@@ -7,7 +7,7 @@ load_dotenv(os.path.join(basedir, '.env'))
 
 class Config(object):
     SECRET_KEY = os.environ['SECRET_KEY'] or 'you-will-never-guess'
-    #SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+    # SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
     #    'sqlite:///' + os.path.join(basedir, 'app.db')
     PSQL_USER = os.environ['PSQL_USER']
     PSQL_PW = os.environ['PSQL_PW']
@@ -28,4 +28,4 @@ class Config(object):
     TWILIO_ACCOUNT_SID = os.environ['TWILIO_ACCOUNT_SID_TEMP']
     TWILIO_AUTH_TOKEN = os.environ['TWILIO_AUTH_TOKEN_TEMP']
     SCHEDULER_API_ENABLED = True
-    TWILIO_PHONE_NUMBER=os.environ['TWILIO_PHONE_NUMBER']
+    TWILIO_PHONE_NUMBER = os.environ['TWILIO_PHONE_NUMBER']

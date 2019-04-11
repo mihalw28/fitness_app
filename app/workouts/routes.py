@@ -2,39 +2,39 @@ from flask import render_template, flash, redirect, url_for, request, Flask
 from app import db
 from app.workouts import bp
 from flask import current_app
-from flask_login import current_user, login_user, login_required
+from flask_login import current_user, login_required
 from app.models import User, Train
 from selenium import webdriver
 import time
-from config import Config
-from app.workouts.forms import SignUpForTrainingForm, CancelTrainingForm
+# from config import Config
+# from app.workouts.forms import SignUpForTrainingForm, CancelTrainingForm
 import dateparser
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 from app import csrf
 import datetime
-import pytz
+# import pytz
 from app import scheduler
-import os
+# import os
 
 
-#Sign up
-@scheduler.task('cron', id='sign_up_users', hour='*/1')
+# Sign up
+@scheduler.task('cron', id='sign_up_users', hour='*/2')
 @bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     with scheduler.app.test_request_context():
         users = User.query.all()
         for user in users:
-            if (user.club_name is not None) and (user.classes is not None): 
+            if (user.club_name is not None) and (user.classes is not None):
                 chrome_options = webdriver.ChromeOptions()
-                # driver_path = "/Users/micha/Documents/GitHub/fitness_app/chromedriver"  # local
+                driver_path = "/Users/micha/Documents/GitHub/fitness_app/chromedriver"  # local
                 chrome_options.add_argument('--window-size=1280x1696')  # docker + local
                 chrome_options.add_argument('--disable-dev-shm-usage')
-                chrome_options.add_argument('--headless')  # docker
-                chrome_options.add_argument('--no-sandbox')  # docker
-                chrome_options.add_argument('--disable-gpu')  # docker
-                chrome_options.add_argument('--lang=pl')  # necessary for avoiding parsing dates error; docker + local in headless mode
-                driver = webdriver.Chrome(chrome_options=chrome_options)  # , executable_path=driver_path)  # executable path argument; local executions     
+                # chrome_options.add_argument('--headless')  # docker
+                # chrome_options.add_argument('--no-sandbox')  # docker
+                # chrome_options.add_argument('--disable-gpu')  # docker
+                # chrome_options.add_argument('--lang=pl')  # necessary for avoiding parsing dates error; docker + local in headless mode
+                driver = webdriver.Chrome(chrome_options=chrome_options, executable_path=driver_path)  # executable path argument; local executions
                 driver.get(current_app.config['GYM_LOGIN_URL'])
                 time.sleep(4)  # Need time to load page
                 driver.find_element_by_xpath("//div/input[@name='Login']") \
@@ -45,7 +45,7 @@ def signup():
                 driver.find_element_by_class_name('auth-form-actions').click()
                 time.sleep(4)  # Next page waiting
 
-                list_url = current_app.config['GYM_LIST_CLASSES'] + '#/Classes/' +str(user.club_name) + '/List'
+                list_url = current_app.config['GYM_LIST_CLASSES'] + '#/Classes/' + str(user.club_name) + '/List'
                 driver.get(list_url)
                 time.sleep(3)
 
@@ -89,13 +89,14 @@ def signup():
                     time.sleep(0.5)
                     training_datetime = parsed_dates[workout_index-1]
                     training_activity = Train(your_training=user.classes,
-                                            training_datetime=training_datetime,
-                                            user_id=user.id)
+                                              training_datetime=training_datetime,
+                                              user_id=user.id)
                     db.session.add(training_activity)
                     db.session.commit()
                     driver.close()
                     # Send sms
-                    # Below body_message is one liner and written in "bad language" due to gsm coding restrictions
+                    # Below body_message is one liner and written in
+                    # "bad language" due to gsm coding restrictions
                     body_message = f'Hej, trenujesz {user_training} w dniu {training_datetime}! Zaakceptuj - "tak" lub "nie". Jak nie potwierdzisz uczestnictwa do 4 godzin przed startem treninu, twoja rezerwacja zostanie anulowana.'
                     client = Client(current_app.config['TWILIO_ACCOUNT_SID'],
                                     current_app.config['TWILIO_AUTH_TOKEN'])
@@ -107,10 +108,8 @@ def signup():
                 else:
                     pass
             else:
-                pass 
+                pass
     return
-    #return redirect(url_for('main.index'))
-    #return render_template('workouts/signup.html', title='Signup')  # , form=form)
 
 
 @csrf.exempt  # Some errors without this decorator
@@ -125,7 +124,7 @@ def sms():
         Train.query.filter_by(user_id=user.id).order_by(Train.timestamp.desc()). \
             first().acceptance = 'tak'
         db.session.commit()
-        resp.message("Dzięki za potwierdzenie. Udanego treningu.")
+        resp.message("Dzieki za potwierdzenie. Udanego treningu.")
     elif "nie" in body.lower():
         chrome_options = webdriver.ChromeOptions()
         # driver_path = "/Users/micha/Documents/GitHub/fitness_app/chromedriver"  # local
@@ -136,7 +135,7 @@ def sms():
         chrome_options.add_argument('--disable-gpu')  # docker
         chrome_options.add_argument('--lang=pl')  # necessary for avoiding parsing dates error; docker + local in headless mode
         driver = webdriver.Chrome(chrome_options=chrome_options)  # , executable_path=driver_path)  # executable path argument; local executions
-        
+
         driver.get(current_app.config['GYM_LOGIN_URL'])
         time.sleep(1)  # Need time to load page
         driver.find_element_by_xpath("//div/input[@name='Login']") \
@@ -147,7 +146,7 @@ def sms():
         driver.find_element_by_class_name('auth-form-actions').click()
         time.sleep(2)  # Next page waiting
 
-        list_url = current_app.config['GYM_LIST_CLASSES'] + '#/Classes/' +str(user.club_name) + '/List'
+        list_url = current_app.config['GYM_LIST_CLASSES'] + '#/Classes/' + str(user.club_name) + '/List'
         driver.get(list_url)
         time.sleep(1)
 
@@ -155,34 +154,31 @@ def sms():
         time.sleep(1)
         trainings = Train.query.filter_by(user_id=user.id).\
             order_by(Train.timestamp.desc()).first()
-        
+
         db.session.delete(trainings)  # Delete training from user profile
         db.session.commit()
         driver.close()
-        resp.message("Rezerwacja treningu z poprzedniej wiadomości odwołana.\
-                      Miłego dnia.")
+        resp.message("Rezerwacja treningu z poprzedniej wiadomosci odwolana. Milego dnia.")
     else:
-        resp.message(f"Coś źle poszło. Odpisz 'tak' jeżeli potwierdzasz udział\
-                       lub 'nie' jeżeli odwołujesz rezerwację. Ty napisałaś/eś:\
-                       {body}.")
+        resp.message(f"Zle poszlo. Odpisz 'tak' jezeli potwierdzasz udzial lub 'nie' jezeli odwolujesz rezerwację. Ty napisalas/es: {body}.")
     return str(resp)
 
 
 # Cancel training manually from web app
-@bp.route('/cancel', methods=['GET', 'POST'])
-@login_required 
-def cancel():
+@bp.route('/cancel_training', methods=['GET', 'POST'])
+@login_required
+def cancel_training():
+    # form = CancelTrainingForm()
+    # if form.validate_on_submit():
     user = User.query.filter_by(username=current_user.username).first()  # find user by cell_number not username
-    # driver = webdriver.Chrome('/Users/micha/Documents/GitHub/fitness_app/\
-    #                           chromedriver')  # local
+    driver_path = "/Users/micha/Documents/GitHub/fitness_app/chromedriver"
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument('--window-size=1280x1696')  # docker + local
-    chrome_options.add_argument('--disable-dev-shm-usage') # docker
-    chrome_options.add_argument('--headless')  # docker
-    chrome_options.add_argument('--no-sandbox')  # docker
-    chrome_options.add_argument('--disable-gpu')  # docker
-    driver = webdriver.Chrome(chrome_options=chrome_options) #docker
-
+    chrome_options.add_argument('--disable-dev-shm-usage')  # docker
+    # chrome_options.add_argument('--headless')  # docker
+    # chrome_options.add_argument('--no-sandbox')  # docker
+    # chrome_options.add_argument('--disable-gpu')  # docker
+    driver = webdriver.Chrome(chrome_options=chrome_options, executable_path=driver_path)  # docker
     driver.get(current_app.config['GYM_LOGIN_URL'])
     time.sleep(3)  # Obligatory for waiting to load page
     driver.find_element_by_xpath("//div/input[@name='Login']").\
@@ -192,7 +188,7 @@ def cancel():
     time.sleep(2)  # Just to see results no need in headless mode
     driver.find_element_by_class_name('auth-form-actions').click()
     time.sleep(6)  # Next page waiting
-    list_url = current_app.config['GYM_LIST_CLASSES'] + '#/Classes/' +str(user.club_name) + '/List'
+    list_url = current_app.config['GYM_LIST_CLASSES'] + '#/Classes/' + str(user.club_name) + '/List'
     driver.get(list_url)
     time.sleep(4)
     driver.find_element_by_css_selector(".is-booked .class-item-actions").click()
@@ -201,8 +197,9 @@ def cancel():
     db.session.delete(trainings)
     db.session.commit()
     driver.close()
+    flash('Twój trening został odwołany.')
     return redirect(url_for('main.index'))
-
+    # return render_template('index.html')  # , form=form)
 
 # Unbook all unconfirmed traininges - without user permission
 @bp.route('/unbook', methods=['GET', 'POST'])
@@ -221,11 +218,11 @@ def unbook():
                 #                            fitness_app/chromedriver')  # local
                 chrome_options = webdriver.ChromeOptions()
                 chrome_options.add_argument('--window-size=1280x1696')  # docker + local
-                chrome_options.add_argument('--disable-dev-shm-usage') # docker
+                chrome_options.add_argument('--disable-dev-shm-usage')  # docker
                 chrome_options.add_argument('--headless')  # docker
                 chrome_options.add_argument('--no-sandbox')  # docker
                 chrome_options.add_argument('--disable-gpu')  # docker
-                driver = webdriver.Chrome(chrome_options=chrome_options) #docker
+                driver = webdriver.Chrome(chrome_options=chrome_options)  # docker
                 driver.get(current_app.config['GYM_LOGIN_URL'])
                 time.sleep(3)  # Obligatory for waiting to load page
                 driver.find_element_by_xpath("//div/input[@name='Login']").\
@@ -235,7 +232,7 @@ def unbook():
                 time.sleep(2)  # Just to see results no need in headless mode
                 driver.find_element_by_class_name('auth-form-actions').click()
                 time.sleep(6)  # Next page waiting
-                list_url = current_app.config['GYM_LIST_CLASSES'] + '#/Classes/' +str(user.club_name) + '/List'
+                list_url = current_app.config['GYM_LIST_CLASSES'] + '#/Classes/' + str(user.club_name) + '/List'
                 driver.get(list_url)
                 time.sleep(4)
                 driver.find_element_by_css_selector(".is-booked .class-item-actions").click()

@@ -1,10 +1,6 @@
-from flask import request
+# from flask import request
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, BooleanField,\
-    SelectField, HiddenField
-from wtforms.validators import ValidationError, DataRequired, Length,\
-    InputRequired
-from app.models import User
+from wtforms import SubmitField, HiddenField
 
 
 class SignUpForTrainingForm(FlaskForm):
@@ -13,5 +9,5 @@ class SignUpForTrainingForm(FlaskForm):
 
 
 class CancelTrainingForm(FlaskForm):
-    trainings = HiddenField()
-    submit = SubmitField("Cancel")
+    # trainings = HiddenField()
+    submit = SubmitField("Anuluj rezerwację")
