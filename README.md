@@ -12,10 +12,12 @@ Default gym app doesn't allow to schedule trainings and signup automatically.
 * It is a convinient solution.
 * Works in parallel with default gym app.
 
+
 ##### :heavy_exclamation_mark: Cons:
 * Works only on gym site that was designed for. After small changes it could also works for almost any other gym with website signups.
 * This type of scripts with auto loggin and auto signup functions could be unwated.
 * Due to the nature of this app, it generates real costs working deployed - Twillio & AWS. 
+
 
 #### :hammer: How it works - gerneral:
 1. Registration and creation of user profile - gym selection and class(es).
@@ -23,13 +25,12 @@ Default gym app doesn't allow to schedule trainings and signup automatically.
 3. After correctly subscribing to training the user recievs a confirmation via :iphone:
 4. If user wouldn't accept a confirmation from the app, his/her place in training will be unbooked 4 hours before the start.
 
+
 #### How it works - backend:
 1. Flask app uses blueprints objects.
 2. App is deployed on AWS using docker containers. Pre-configured container uses headless chrome browser and selenium testing package.
 3. Scrapping module is an inner part of the application. 
 4. DB used: AWS PostgreSQL.
-3. 
-
 
 
 #### Main goals to accomplish:
@@ -41,10 +42,12 @@ Default gym app doesn't allow to schedule trainings and signup automatically.
 6. [x] Set time intervals using cron jobs - APScheduler.
 7. [ ] Make some more user friendly frontend.
 
+
 #### Improvement ideas:
 1. [ ] Add an option to select more than one discipline and more than one training a day.
 
-#### Made with :heart: using:
+
+#### Made with :coffee: using:
 * Python :snake:
 * [Flask](https://github.com/pallets/flask)
 * [SQLAlchemy](https://github.com/pallets/flask-sqlalchemy)
@@ -54,6 +57,7 @@ Default gym app doesn't allow to schedule trainings and signup automatically.
 * [Docker](https://www.docker.com/):whale:
 * ~~will be~~ Has been deployed using [AWS](https://aws.amazon.com/lambda/) (RDS, API Gateway, Elastic Beanstalk, Docker)
 
+
 #### Credits:
  - Fitness App is based on microblog application skeleton from [The Flask Mega Tutorial](https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world) by Miguel Grinberg
  - Dockercontainer for running Python Selenium in headless Chrome[click](https://github.com/joyzoursky/docker-python-chromedriver)
@@ -61,7 +65,8 @@ Default gym app doesn't allow to schedule trainings and signup automatically.
 
 
 #### Additional info
-As an autor of this app I'm still a beginner :beginner: python programmmer constantly learning. I don't know many programming tricks and hacks. Many more experienced developers probably will pay attention to bad coding practises used here or know better/easier solutions. I will be very grateful for suggestions where to go next. I'm open for constructive criticism and any comments.
+As an autor of this app I'm still a beginner :beginner: python programmmer constantly learning. I don't know many programming tricks and hacks. Many more experienced developers probably know better/easier solutions. I will be very grateful for suggestions where to go next. I'm open for constructive criticism.
+
 
 ### License:
 [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT) [![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/fold_left.svg?style=social&label=%20%40mihalw28)](https://twitter.com/mihalw28)
