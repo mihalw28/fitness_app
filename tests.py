@@ -3,9 +3,9 @@ import unittest
 from app import create_app, db
 from app.models import User, Train
 from config import Config
-# import pytest
-from flask import url_for, current_app, abort  # , request
-# import flask_testing
+import pytest
+from flask import url_for, current_app, abort, request
+import flask_testing
 from flask_testing import TestCase
 
 
@@ -170,7 +170,7 @@ class TestErrors(TestBase):
         response = self.client.get('/errors/500')
         self.assertEqual(response.status_code, 500)
         # There isn't any option of typing b"foo" below, because of ASCII
-        # literal characters (presence of polich letters)
+        # literal characters (presence of polish letters)
         self.assertTrue("nieprzewidziany błąd" in response.get_data(as_text=True))
 
 

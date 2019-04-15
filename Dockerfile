@@ -18,7 +18,9 @@ COPY migrations migrations
 
 COPY fit_app.py config.py boot.sh ./
 RUN chmod +x boot.sh
-# RUN chmod +x /home/fitness_app/bin
+RUN chmod +x fit_app.py
+RUN chmod +x config.py
+RUN chmod +x /home/fitness_app/
 # RUN chmod +x -R /bin
 
 ENV FLASK_APP fit_app.py

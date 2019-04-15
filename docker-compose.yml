@@ -1,7 +1,7 @@
 version: '3'
 services:
   main:
-    image: flask_chrome_drv:v3  # kali:latest
+    image: mihalw28/fitness_app:v1 
     env_file:
       - .flaskenv
     build: .

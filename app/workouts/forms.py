@@ -9,5 +9,4 @@ class SignUpForTrainingForm(FlaskForm):
 
 
 class CancelTrainingForm(FlaskForm):
-    # trainings = HiddenField()
     submit = SubmitField("Anuluj rezerwację")
