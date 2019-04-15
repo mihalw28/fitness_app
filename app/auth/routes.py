@@ -21,7 +21,7 @@ def login():
             return redirect(url_for('auth.login'))
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
-        if not next_page or url_parse(next_page).netloc != '':  # Security reasons
+        if not next_page or url_parse(next_page).netloc != '':  # Securities
             next_page = url_for('main.index')
         return redirect(next_page)
     return render_template('auth/login.html', title='Sign In', form=form)

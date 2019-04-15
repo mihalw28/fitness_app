@@ -29,7 +29,7 @@ def get_user_trainings(id):
     page = request.args.get('page', 1, type=int)
     per_page = min(request.args.get('per_page', 10, type=int), 100)
     data = Train.to_collection_dict(user.followed_trainings(), page, per_page,
-                                   'api.get_user_trainings', id=id)
+                                    'api.get_user_trainings', id=id)
     return jsonify(data)
 
 # Below route is unnecessary in production, but was made for practise
@@ -51,6 +51,7 @@ def create_user():
     response.status_code = 201
     response.headers['Location'] = url_for('api.get_user', id=user.id)
     return response
+
 
 @csrf.exempt
 @bp.route('/users/<int:id>', methods=['PUT'])

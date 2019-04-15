@@ -50,7 +50,7 @@ def create_app(config_class=Config):
 
     from app.api import bp as api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
-    
+
     if not app.debug and not app.testing:
         if app.config['MAIL_SERVER']:
             auth = None
@@ -81,5 +81,6 @@ def create_app(config_class=Config):
         app.logger.info('Fitness app startup')
 
     return app
+
 
 from app import models

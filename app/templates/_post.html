@@ -12,9 +12,18 @@
                 </a>
             {% endset %}
             <p>
-                Uczestniczyłaś/eś w: {{ activity.your_training }} {{ activity.training_datetime }}
-                Data zapisu: {{ moment(activity.timestamp).fromNow() }}
-                <button type="button" class="btn btn-warning">Anuluj rezerwację</button>
+                {% if (activity.training_datetime > now) %}
+                    Jesteś zapisana/y na: {{ activity.your_training }} {{ activity.training_datetime }}
+                    Data zapisu: {{ moment(activity.timestamp).fromNow() }}
+                    <form method="POST" action="{{ url_for('workouts.cancel_training') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"></input>
+                        <button type="submit" class="btn btn-warning">Anuluj rezerwację</button>
+                    </form>
+                {% else %}
+                    Uczestniczyłaś/eś w: {{ activity.your_training }} {{ activity.training_datetime }}
+                    Data zapisu: {{ moment(activity.timestamp).fromNow() }}
+                    <button type="submit" class="btn btn-warning" disabled>Anuluj rezerwację</button>
+                {% endif %}
             </p>
             <br>
         </td>

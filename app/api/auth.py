@@ -26,6 +26,7 @@ def verify_token(token):
     g.current_user = User.check_token(token) if token else None
     return g.current_user is not None
 
+
 @token_auth.error_handler
 def token_auth_error():
     return error_response(401)

@@ -1,0 +1,20 @@
+{
+    "AWSEBDockerrunVersion": "1",
+    "Image": {
+      "Name": "mihalw28/fitness_app:v4",
+      "Update": "true"
+    },
+    "Ports": [
+      {
+        "ContainerPort": "5000",
+        "HostPort": "8000"
+      }
+    ],
+    "Volumes": [
+      {
+        "HostDirectory": "fitness_app",
+        "ContainerDirectory": "/home/fitness_app"
+      }
+    ],
+    "Entrypoint": "./boot.sh"
+  }
