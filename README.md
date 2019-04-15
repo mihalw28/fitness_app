@@ -25,22 +25,24 @@ Default gym app doesn't allow to schedule trainings and signup automatically.
 
 #### How it works - backend:
 1. Flask app uses blueprints objects.
-1. App is deployed on AWS using docker containers. Pre-configured container uses headless chrome browser and selenium testing package.
-2. DB used: AWS PostgreSQL.
+2. App is deployed on AWS using docker containers. Pre-configured container uses headless chrome browser and selenium testing package.
+3. Scrapping module is an inner part of the application. 
+4. DB used: AWS PostgreSQL.
 3. 
 
 
 
 #### Main goals to accomplish:
-1. [x] Firstly I had an idea of deploying app on Heroku, but that idea is not alive now. Foremost it's necessary to create API endpoints for scrapping gym website using AWS Lambda. ~~I will try to deploy the whole app using serverless technology (@ AWS Λ); both scrapping module and web app module.~~ AWS Lambda connected to DB instance within VPC generates high costs, so this idea has been dropped.
+1. [x] Firstly I had an idea of deploying app on Heroku, but that idea is not alive now. Foremost it's necessary to create API endpoints for scrapping gym website using AWS Lambda. ~~I will try to deploy the whole app using serverless technology (@ AWS Λ); both scrapping module and web app module.~~ AWS Lambda connected to DB instance within VPC generates high costs, so this idea has been dropped. Scrapping module is placed within the main app.
 2. [x] Tests. I'm currently improving this skill. Some tests have been added recently.
-3. [ ] Improve user profile.
-4. [ ] Replace some app modules with Lambda functions and add new ones.
-5. [ ] Create API endpoints to handle HTTP requests - API Gateway.
+3. [ ] Replace some app modules with Lambda functions and add new ones.
+4. [x] Create API endpoints to handle HTTP requests - API Gateway.
+5. [ ] Create complete REST API.
+6. [x] Set time intervals using cron jobs - APScheduler.
+7. [ ] Make some more user friendly frontend.
 
-6. [ ] Create complete REST API.
-7. [ ] Set time intervals using cron jobs - APScheduler.
-8. [ ] Make some user friendly frontend.
+#### Improvement ideas:
+1. [ ] Add an option to select more than one discipline and more than one training a day.
 
 #### Made with :heart: using:
 * Python :snake:
@@ -50,7 +52,7 @@ Default gym app doesn't allow to schedule trainings and signup automatically.
 * [Selenium](https://github.com/SeleniumHQ/selenium)
 * [Twilio](https://www.twilio.com/)
 * [Docker](https://www.docker.com/):whale:
-* ~~will be~~ deployed using [AWS](https://aws.amazon.com/lambda/)(RDS, API Gateway, Elastic Beanstalk, Docker)
+* ~~will be~~ Has been deployed using [AWS](https://aws.amazon.com/lambda/) (RDS, API Gateway, Elastic Beanstalk, Docker)
 
 #### Credits:
  - Fitness App is based on microblog application skeleton from [The Flask Mega Tutorial](https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world) by Miguel Grinberg
