@@ -1,6 +1,5 @@
-# from flask import request
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, HiddenField
+from wtforms import HiddenField, SubmitField
 
 
 class SignUpForTrainingForm(FlaskForm):

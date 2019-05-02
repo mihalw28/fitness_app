@@ -1,17 +1,19 @@
-from datetime import datetime, timedelta
 import unittest
-from app import create_app, db
-from app.models import User, Train
-from config import Config
-import pytest
-from flask import url_for, current_app, abort, request
+from datetime import datetime, timedelta
+
 import flask_testing
+import pytest
+from flask import abort, current_app, request, url_for
 from flask_testing import TestCase
+
+from app import create_app, db
+from app.models import Train, User
+from config import Config
 
 
 class TestConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite://'
+    SQLALCHEMY_DATABASE_URI = "sqlite://"
 
 
 class TestBase(TestCase):
@@ -34,33 +36,40 @@ class TestBase(TestCase):
 
 class TestModels(TestBase):
     def test_password_hashing(self):
-        u = User(username='sam')
-        u.set_password('mas')
-        self.assertFalse(u.check_password('sma'))
-        self.assertTrue(u.check_password('mas'))
+        u = User(username="sam")
+        u.set_password("mas")
+        self.assertFalse(u.check_password("sma"))
+        self.assertTrue(u.check_password("mas"))
 
     def test_avatar(self):
-        u = User(username='elon', email='elon@musk.com')
-        self.assertEqual(u.avatar(128), ('https://www.gravatar.com/avatar/'
-                                         'e7959a50c2ef77c47391d53933b383c2'
-                                         '?d=retro&s=128'))
+        u = User(username="elon", email="elon@musk.com")
+        self.assertEqual(
+            u.avatar(128),
+            (
+                "https://www.gravatar.com/avatar/"
+                "e7959a50c2ef77c47391d53933b383c2"
+                "?d=retro&s=128"
+            ),
+        )
 
     def test_cell_number(self):  # think it is something wrong here
-        u = User(username='michal', cell_number='48509590590')
-        self.assertNotEqual(u.cell_number, ('48590390590'))
+        u = User(username="michal", cell_number="48509590590")
+        self.assertNotEqual(u.cell_number, ("48590390590"))
 
     def test_follow_activities(self):
         # create 2 users
-        u1 = User(username='sam', email='sam@example.com')
-        u2 = User(username='magi', email='magi@example.com')
+        u1 = User(username="sam", email="sam@example.com")
+        u2 = User(username="magi", email="magi@example.com")
         db.session.add_all([u1, u2])
 
         # create 2 trainings
         now = datetime.utcnow()
-        t1 = Train(your_training='Yoga', athlete=u1, timestamp=now +
-                   timedelta(seconds=1))
-        t2 = Train(your_training='Bodypump', athlete=u2, timestamp=now +
-                   timedelta(seconds=2))
+        t1 = Train(
+            your_training="Yoga", athlete=u1, timestamp=now + timedelta(seconds=1)
+        )
+        t2 = Train(
+            your_training="Bodypump", athlete=u2, timestamp=now + timedelta(seconds=2)
+        )
         db.session.add_all([t1, t2])
         db.session.commit()
 
@@ -74,9 +83,9 @@ class TestModels(TestBase):
         """
         Test number of in User table
         """
-        u1 = User(username='sam', email='sam@example.com')
-        u2 = User(username='magi', email='magi@example.com')
-        u3 = User(username='micha', email='micha@micha.com')
+        u1 = User(username="sam", email="sam@example.com")
+        u2 = User(username="magi", email="magi@example.com")
+        u3 = User(username="micha", email="micha@micha.com")
         db.session.add_all([u1, u2, u3])
         db.session.commit()
         self.assertEqual(User.query.count(), 3)
@@ -86,12 +95,12 @@ class TestModels(TestBase):
         Test number of records in Train table
         """
         # create test trainings
-        t1 = Train(your_training='Yoga')
-        t2 = Train(your_training='Bodypump')
-        t3 = Train(your_training='Yoga')
-        t4 = Train(your_training='Bodypump')
-        t5 = Train(your_training='Yoga')
-        t6 = Train(your_training='Bodypump')
+        t1 = Train(your_training="Yoga")
+        t2 = Train(your_training="Bodypump")
+        t3 = Train(your_training="Yoga")
+        t4 = Train(your_training="Bodypump")
+        t5 = Train(your_training="Yoga")
+        t6 = Train(your_training="Bodypump")
 
         # save department to database
         db.session.add_all([t1, t2, t3, t4, t5, t6])
@@ -105,15 +114,15 @@ class TestViews(TestBase):
         Test that login page is accessible without login
         """
         # with current_app.app_context():
-        response = self.client.get(url_for('auth.login'))
+        response = self.client.get(url_for("auth.login"))
         self.assertEqual(response.status_code, 200)
 
     def test_logout_view(self):
         """
         Test inaccessibility of logout link without login
         """
-        target_url = url_for('auth.logout')
-        redirect_url = url_for('auth.login', next=target_url)
+        target_url = url_for("auth.logout")
+        redirect_url = url_for("auth.login", next=target_url)
         # with current_app.app_context():
         response = self.client.get(target_url)
         self.assertEqual(response.status_code, 302)
@@ -124,8 +133,8 @@ class TestViews(TestBase):
         Test that dashboard is inaccessible without login
         and redirects to login page then to dashboard
         """
-        target_url = url_for('main.index')
-        redirect_url = url_for('auth.login', next=target_url)
+        target_url = url_for("main.index")
+        redirect_url = url_for("auth.login", next=target_url)
         # with current_app.app_context():
         response = self.client.get(target_url)
         self.assertEqual(response.status_code, 302)
@@ -136,8 +145,8 @@ class TestViews(TestBase):
         Test user profile inaccessibility without login
         and redirects to login page then to profile page
         """
-        target_url = url_for('main.user', username='Verylongname')
-        redirect_url = url_for('auth.login', next=target_url)
+        target_url = url_for("main.user", username="Verylongname")
+        redirect_url = url_for("auth.login", next=target_url)
         response = self.client.get(target_url)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, redirect_url)
@@ -147,32 +156,31 @@ class TestViews(TestBase):
         Test user edit_profile inaccessibility without login
         and redirects to login page then to profile page
         """
-        target_url = url_for('main.edit_profile')
-        redirect_url = url_for('auth.login', next=target_url)
+        target_url = url_for("main.edit_profile")
+        redirect_url = url_for("auth.login", next=target_url)
         response = self.client.get(target_url)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, redirect_url)
 
 
 class TestErrors(TestBase):
-
     def test_not_found_error(self):
-        response = self.client.get('/errors/404')
+        response = self.client.get("/errors/404")
         self.assertEqual(response.status_code, 404)
         self.assertTrue(b"File Not Found" in response.data)
 
     def test_internal_error(self):
         # create route to abort the request with the 500 Error
-        @self.app.route('/errors/500')
+        @self.app.route("/errors/500")
         def internal_error():
             abort(500)
 
-        response = self.client.get('/errors/500')
+        response = self.client.get("/errors/500")
         self.assertEqual(response.status_code, 500)
         # There isn't any option of typing b"foo" below, because of ASCII
         # literal characters (presence of polish letters)
         self.assertTrue("nieprzewidziany błąd" in response.get_data(as_text=True))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main(verbosity=2)
