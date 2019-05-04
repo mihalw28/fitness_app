@@ -40,11 +40,21 @@ def register():
         return redirect(url_for('main.index'))
     form = RegistrationForm()
     if form.validate_on_submit():
+<<<<<<< Updated upstream
         user = User(username=form.username.data, email=form.email.data,
                     cell_number=form.cell_number.data,
                     club_site_login=form.club_site_login.data,
                     club_site_password=form.club_site_password.data)
+=======
+        user = User(
+            username=form.username.data,
+            email=form.email.data,
+            cell_number=form.cell_number.data,
+            club_site_login=form.club_site_login.data,
+        )
+>>>>>>> Stashed changes
         user.set_password(form.password.data)
+        user.hash_club_site_password(form.club_site_password.data)
         db.session.add(user)
         db.session.commit()
         flash('Gratulacje, pomyślnie ukończyłaś/eś proces rejestracji.')

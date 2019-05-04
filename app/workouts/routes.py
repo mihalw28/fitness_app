@@ -1,7 +1,15 @@
+<<<<<<< Updated upstream
 from flask import flash, redirect, url_for, request, Flask, render_template
 from app import db
 from app.workouts import bp
 from flask import current_app
+=======
+import datetime
+import time
+
+import dateparser
+from flask import (Flask, current_app, flash, redirect, request, url_for)
+>>>>>>> Stashed changes
 from flask_login import current_user, login_required
 from app.models import User, Train
 from selenium import webdriver
@@ -11,9 +19,18 @@ from app.workouts.forms import CancelTrainingForm
 import dateparser
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
+<<<<<<< Updated upstream
 from app import csrf
 import datetime
 from app import scheduler
+=======
+
+from app import csrf, db, scheduler
+from app.auth.crypting import decrypt_gym_password
+from app.models import Train, User
+from app.workouts import bp
+from app.workouts.forms import CancelTrainingForm
+>>>>>>> Stashed changes
 
 
 # Sign up
@@ -24,6 +41,7 @@ def signup():
         users = User.query.all()
         for user in users:
             if (user.club_name is not None) and (user.classes is not None):
+                club_site_password_plain = decrypt_gym_password(user)
                 chrome_options = webdriver.ChromeOptions()
                 driver_path = "/Users/micha/Documents/GitHub/fitness_app/chromedriver"  # local
                 chrome_options.add_argument('--window-size=1280x1696')  # docker + local
@@ -35,10 +53,20 @@ def signup():
                 driver = webdriver.Chrome(chrome_options=chrome_options, executable_path=driver_path)  # executable path argument; local executions
                 driver.get(current_app.config['GYM_LOGIN_URL'])
                 time.sleep(4)  # Need time to load page
+<<<<<<< Updated upstream
                 driver.find_element_by_xpath("//div/input[@name='Login']") \
                     .send_keys(user.club_site_login)
                 driver.find_element_by_xpath("//div/input[@name='Password']") \
                     .send_keys(user.club_site_password)
+=======
+                driver.find_element_by_xpath("//div/input[@name='Login']").send_keys(
+                    user.club_site_login
+                )
+                driver.find_element_by_xpath("//div/input[@name='Password']").send_keys(
+                    # user.club_site_password
+                    club_site_password_plain
+                )
+>>>>>>> Stashed changes
                 time.sleep(0.5)  # Just to see results no need in headless mode
                 driver.find_element_by_class_name('auth-form-actions').click()
                 time.sleep(4)  # Next page waiting
@@ -52,20 +80,38 @@ def signup():
                                                             .class-list-day-title").text.lower()
                 # List all activities in one day
                 list_all = []
+<<<<<<< Updated upstream
                 list_all_day_act = driver.find_elements_by_css_selector(".cp-class-container > div:nth-of-type(2) \
                                                                          .calendar-item-name")
+=======
+                list_all_day_act = driver.find_elements_by_css_selector(
+                    ".cp-class-container > div:nth-of-type(2) .calendar-item-name"
+                )
+>>>>>>> Stashed changes
                 for element in list_all_day_act:
                     list_all.append((element.text).lower())
                 # List all bookable activities and their start time
                 list_bookable = []
+<<<<<<< Updated upstream
                 list_all_bookable_act = driver.find_elements_by_css_selector(".cp-class-container > div:nth-of-type(2) \
                                                                               .is-bookable .calendar-item-name")
+=======
+                list_all_bookable_act = driver.find_elements_by_css_selector(
+                    ".cp-class-container > div:nth-of-type(2) .is-bookable .calendar-item-name"
+                )
+>>>>>>> Stashed changes
                 for element in list_all_bookable_act:
                     list_bookable.append((element.text).lower())
                 # List all activities' start time
                 list_all_start = []
+<<<<<<< Updated upstream
                 list_hours = driver.find_elements_by_css_selector(".cp-class-container > div:nth-of-type(2) \
                                                                    .calendar-item-start")
+=======
+                list_hours = driver.find_elements_by_css_selector(
+                    ".cp-class-container > div:nth-of-type(2) .calendar-item-start"
+                )
+>>>>>>> Stashed changes
                 for element in list_hours:
                     list_all_start.append(element.text)
 
@@ -82,8 +128,16 @@ def signup():
                     # Find index of desirable workout and book
                     workout_index = list_all.index((user.classes).lower())
                     web_index = str(workout_index + 2)  # From gym website
+<<<<<<< Updated upstream
                     driver.find_element_by_css_selector(".cp-class-container > div:nth-of-type(2) > div:nth-of-type(" + web_index + ") \
                                                         .class-item-actions").click()
+=======
+                    driver.find_element_by_css_selector(
+                        ".cp-class-container > div:nth-of-type(2) > div:nth-of-type("
+                        + web_index
+                        + ") .class-item-actions"
+                    ).click()
+>>>>>>> Stashed changes
                     time.sleep(0.5)
                     training_datetime = parsed_dates[workout_index-1]
                     training_activity = Train(your_training=user.classes,
