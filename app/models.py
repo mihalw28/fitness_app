@@ -5,6 +5,10 @@ from hashlib import md5
 from time import time
 
 import jwt
+from cryptography.fernet import Fernet
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from flask import current_app, url_for
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -38,13 +42,15 @@ class PaginatedAPIMixin(object):
 
 
 class User(PaginatedAPIMixin, UserMixin, db.Model):
+    __tablename__ = 'user'
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
     cell_number = db.Column(db.String(9), unique=True)
     club_site_login = db.Column(db.String(64))
-    club_site_password = db.Column(db.String(128))
+    club_site_password = db.Column(db.String(512))
     club_name = db.Column(db.String(64))
     club_no = db.Column(db.Integer, unique=False)
     classes = db.Column(db.String(50))
@@ -61,6 +67,30 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def hash_club_site_password(self, gym_password):
+        """Gets plain text user's gym site password, encodes it and
+        changes it's binary form to "utf-8" format to save in db.
+
+        Args:
+            gym_password (str): Plain text gym_password
+
+        """
+        hash_key = current_app.config['HASH_KEY']
+        b_hash_key = hash_key.encode("utf-8")
+        salt = os.urandom(16)
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=salt,
+            iterations=100000,
+            backend=default_backend()
+        )
+        key = base64.urlsafe_b64encode(kdf.derive(b_hash_key))
+        cipher_suite = Fernet(key)
+        h_gym_password = cipher_suite.encrypt(gym_password.encode("utf-8"))
+        p_h_gym_password = bytes(h_gym_password).decode("utf-8")
+        self.club_site_password = p_h_gym_password
 
     def avatar(self, size):
         digest = md5(self.email.lower().encode("utf-8")).hexdigest()
@@ -148,6 +178,8 @@ def load_user(id):
 
 
 class Train(PaginatedAPIMixin, db.Model):
+    __tablename__ = 'train'
+
     id = db.Column(db.Integer, primary_key=True)
     your_training = db.Column(db.String(50))
     training_datetime = db.Column(db.DateTime, index=True)

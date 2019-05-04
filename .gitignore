@@ -331,6 +331,10 @@ ASALocalRun/
 
 #env files
 *.flaskenv
+*.env
+
+#zip packages
+*.zip
 
 #exe
 ngrok.exe

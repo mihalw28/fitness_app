@@ -2,18 +2,17 @@ import datetime
 import time
 
 import dateparser
-from flask import (Flask, current_app, flash, redirect, render_template,
-                   request, url_for)
+from flask import (Flask, current_app, flash, redirect, request, url_for)
 from flask_login import current_user, login_required
 from selenium import webdriver
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 
 from app import csrf, db, scheduler
+from app.auth.crypting import decrypt_gym_password
 from app.models import Train, User
 from app.workouts import bp
 from app.workouts.forms import CancelTrainingForm
-from config import Config
 
 
 # Sign up
@@ -24,6 +23,7 @@ def signup():
         users = User.query.all()
         for user in users:
             if (user.club_name is not None) and (user.classes is not None):
+                club_site_password_plain = decrypt_gym_password(user)
                 chrome_options = webdriver.ChromeOptions()
                 driver_path = (
                     "/Users/micha/Documents/GitHub/fitness_app/chromedriver"
@@ -43,7 +43,8 @@ def signup():
                     user.club_site_login
                 )
                 driver.find_element_by_xpath("//div/input[@name='Password']").send_keys(
-                    user.club_site_password
+                    # user.club_site_password
+                    club_site_password_plain
                 )
                 time.sleep(0.5)  # Just to see results no need in headless mode
                 driver.find_element_by_class_name("auth-form-actions").click()
@@ -66,24 +67,21 @@ def signup():
                 # List all activities in one day
                 list_all = []
                 list_all_day_act = driver.find_elements_by_css_selector(
-                    ".cp-class-container > div:nth-of-type(2) \
-                                                                         .calendar-item-name"
+                    ".cp-class-container > div:nth-of-type(2) .calendar-item-name"
                 )
                 for element in list_all_day_act:
                     list_all.append((element.text).lower())
                 # List all bookable activities and their start time
                 list_bookable = []
                 list_all_bookable_act = driver.find_elements_by_css_selector(
-                    ".cp-class-container > div:nth-of-type(2) \
-                                                                              .is-bookable .calendar-item-name"
+                    ".cp-class-container > div:nth-of-type(2) .is-bookable .calendar-item-name"
                 )
                 for element in list_all_bookable_act:
                     list_bookable.append((element.text).lower())
                 # List all activities' start time
                 list_all_start = []
                 list_hours = driver.find_elements_by_css_selector(
-                    ".cp-class-container > div:nth-of-type(2) \
-                                                                   .calendar-item-start"
+                    ".cp-class-container > div:nth-of-type(2) .calendar-item-start"
                 )
                 for element in list_hours:
                     list_all_start.append(element.text)
@@ -104,8 +102,7 @@ def signup():
                     driver.find_element_by_css_selector(
                         ".cp-class-container > div:nth-of-type(2) > div:nth-of-type("
                         + web_index
-                        + ") \
-                                                        .class-item-actions"
+                        + ") .class-item-actions"
                     ).click()
                     time.sleep(0.5)
                     training_datetime = parsed_dates[workout_index - 1]
