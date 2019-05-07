@@ -59,13 +59,3 @@ class EditProfileForm(FlaskForm):
             ).first()
             if cell_number is not None:
                 raise ValidationError("Ten numer jest już w bazie. Proszę wybrać inny.")
-
-
-# signup form for workout
-"""
-class SignUpForm(FlaskForm):
-    training = SelectField('Your workouts', choices=[('pi', 'Pilates'),
-                           ('zu', 'ZUMBA'), ('ab', 'ABT')],
-                           validators=[InputRequired()])
-    submit2 = SubmitField("Sign Up")
-"""

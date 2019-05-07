@@ -33,7 +33,7 @@ def signup():
                 # chrome_options.add_argument('--headless')  # docker
                 # chrome_options.add_argument('--no-sandbox')  # docker
                 # chrome_options.add_argument('--disable-gpu')  # docker
-                # chrome_options.add_argument('--lang=pl')  # necessary for avoiding parsing dates error; docker + local in headless mode
+                # chrome_options.add_argument('--lang=pl')  # necessary to avoid parsing dates error; docker + local in headless mode
                 driver = webdriver.Chrome(
                     chrome_options=chrome_options, executable_path=driver_path
                 )  # executable path argument; local executions
