@@ -7,6 +7,8 @@ from flask_testing import TestCase
 from app import create_app, db
 from app.models import Train, User
 from config import Config
+from app.auth.crypting import decrypt_gym_password
+# import sqlite3
 
 
 class TestConfig(Config):
@@ -104,6 +106,18 @@ class TestModels(TestBase):
         db.session.add_all([t1, t2, t3, t4, t5, t6])
         db.session.commit()
         self.assertEqual(Train.query.count(), 6)
+
+    def test_gym_site_pasword_encryption(self):
+        """
+        Test password encryption and decrytpion
+        """
+        u1 = User(username="kali", club_site_password="kamikadze")
+        u1.encrypt_site_password("kamikadze")
+        db.session.add_all([u1])
+        db.session.commit()
+        u = User.query.first()
+        plain_text_password = decrypt_gym_password(u)
+        self.assertEqual(plain_text_password, 'kamikadze')
 
 
 class TestViews(TestBase):

@@ -32,4 +32,4 @@ class Config(object):
     TWILIO_AUTH_TOKEN = os.environ["TWILIO_AUTH_TOKEN_TEMP"]
     SCHEDULER_API_ENABLED = True
     TWILIO_PHONE_NUMBER = os.environ["TWILIO_PHONE_NUMBER"]
-    HASH_KEY = os.environ["HASH_KEY"]
+    KEY = os.environ["KEY"]
