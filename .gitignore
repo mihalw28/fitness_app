@@ -434,3 +434,6 @@ Makefile
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+
+# tests orig
+tests.py.orig
