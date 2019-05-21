@@ -1,13 +1,13 @@
 version: '3'
 services:
   main:
-    image: mihalw28/fitness_app:v1 
+    image: mihalw28/fitness_app:v1
     env_file:
       - .flaskenv
     build: .
     ports:
       - "8000:5000"
-    #environment: 
+    #environment:
     #  - PYTHONPATH=/fitness_app/venv:/fitness_app/venv/bin
     #  - PATH=/home/fitness_app/bin
     volumes:

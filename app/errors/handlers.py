@@ -6,9 +6,10 @@ from app.errors import bp
 
 
 def wants_json_response():
+    best = request.accept_mimetypes.best_match(["application/json", "text/html"])
     return (
-        request.accept_mimetypes["application/json"]
-        >= request.accept_mimetypes["text/html"]
+        best == "application/json"
+        and request.accept_mimetypes[best] >= request.accept_mimetypes["text/html"]
     )
 
 

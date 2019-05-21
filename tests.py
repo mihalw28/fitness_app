@@ -8,6 +8,7 @@ from app import create_app, db
 from app.models import Train, User
 from config import Config
 from app.auth.crypting import decrypt_gym_password
+
 # import sqlite3
 
 
@@ -117,7 +118,7 @@ class TestModels(TestBase):
         db.session.commit()
         u = User.query.first()
         plain_text_password = decrypt_gym_password(u)
-        self.assertEqual(plain_text_password, 'kamikadze')
+        self.assertEqual(plain_text_password, "kamikadze")
 
 
 class TestViews(TestBase):
