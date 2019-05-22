@@ -178,6 +178,7 @@ class TestViews(TestBase):
 
 class TestErrors(TestBase):
     def test_not_found_error(self):
+        # test route with 404 error
         response = self.client.get("/errors/404")
         self.assertEqual(response.status_code, 404)
         self.assertTrue(b"File Not Found" in response.data)
@@ -193,6 +194,16 @@ class TestErrors(TestBase):
         # There isn't any option of typing b"foo" below, because of ASCII
         # literal characters (presence of polish letters)
         self.assertTrue("nieprzewidziany błąd" in response.get_data(as_text=True))
+
+    def test_method_not_allowed_error(self):
+        # create route to abort request with 405 error
+        @self.app.route("/errors/405")
+        def not_allowed_error():
+            abort(405)
+        
+        response = self.client.get("/errors/405")
+        self.assertEqual(response.status_code, 405)
+        self.assertTrue(b"Method Not Allowed" in response.data)
 
 
 if __name__ == "__main__":
