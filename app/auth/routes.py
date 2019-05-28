@@ -48,7 +48,7 @@ def register():
             club_site_login=form.club_site_login.data,
         )
         user.set_password(form.password.data)
-        user.hash_club_site_password(form.club_site_password.data)
+        user.encrypt_site_password(form.club_site_password.data)
         db.session.add(user)
         db.session.commit()
         flash("Gratulacje, pomyślnie ukończyłaś/eś proces rejestracji.")

@@ -80,7 +80,7 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
         # Generate encrypted password
         encrypted_password = f.encrypt(b_gym_password)
         # Decode password to plain text
-        plain_encrypted_password = bytes(encrypted_password).decode("utf=8")
+        plain_encrypted_password = bytes(encrypted_password).decode("utf-8")
         self.club_site_password = plain_encrypted_password
 
     def avatar(self, size):
