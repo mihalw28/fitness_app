@@ -2,7 +2,7 @@ import datetime
 import time
 
 import dateparser
-from flask import (Flask, current_app, flash, redirect, request, url_for)
+from flask import Flask, current_app, flash, redirect, request, url_for
 from flask_login import current_user, login_required
 from selenium import webdriver
 from twilio.rest import Client
@@ -15,136 +15,140 @@ from app.workouts import bp
 from app.workouts.forms import CancelTrainingForm
 
 
-# Sign up
+# Scheduled every two hours.
 @scheduler.task("cron", id="sign_up_users", hour="*/2")
 @bp.route("/signup", methods=["GET", "POST"])
 def signup():
+    """
+    This routes automatically signs up users for their trainings.
+    """
     with scheduler.app.test_request_context():
         users = User.query.all()
         for user in users:
             if (user.club_name is not None) and (user.classes is not None):
-                club_site_password_plain = decrypt_gym_password(user)
-                chrome_options = webdriver.ChromeOptions()
-                driver_path = (
-                    "/Users/micha/Documents/GitHub/fitness_app/chromedriver"
-                )  # local
-                chrome_options.add_argument("--window-size=1280x1696")  # docker + local
-                chrome_options.add_argument("--disable-dev-shm-usage")
-                # chrome_options.add_argument('--headless')  # docker
-                # chrome_options.add_argument('--no-sandbox')  # docker
-                # chrome_options.add_argument('--disable-gpu')  # docker
-                # chrome_options.add_argument('--lang=pl')  # necessary to avoid parsing dates error; docker + local in headless mode
-                driver = webdriver.Chrome(
-                    chrome_options=chrome_options, executable_path=driver_path
-                )  # executable path argument; local executions
-                driver.get(current_app.config["GYM_LOGIN_URL"])
-                time.sleep(4)  # Need time to load page
-                driver.find_element_by_xpath("//div/input[@name='Login']").send_keys(
-                    user.club_site_login
-                )
-                driver.find_element_by_xpath("//div/input[@name='Password']").send_keys(
-                    # user.club_site_password
-                    club_site_password_plain
-                )
-                time.sleep(0.5)  # Just to see results no need in headless mode
-                driver.find_element_by_class_name("auth-form-actions").click()
-                time.sleep(4)  # Next page waiting
-
-                list_url = (
-                    current_app.config["GYM_LIST_CLASSES"]
-                    + "#/Classes/"
-                    + str(user.club_name)
-                    + "/List"
-                )
+                arg_list = local_options(webdriver)  # local for now
+                driver = get_driver(arg_list)
+                log_user(user, driver)
+                today = datetime.date.today()
+                tommorow_date = today + datetime.timedelta(days=1)
+                tommorow = tommorow_date.strftime("%Y-%m-%d")
+                list_url = create_url(user, tommorow)
                 driver.get(list_url)
                 time.sleep(3)
 
-                # Find date string
-                date = driver.find_element_by_css_selector(
-                    ".cp-class-container > div:nth-of-type(2) \
-                                                            .class-list-day-title"
-                ).text.lower()
-                # List all activities in one day
-                list_all = []
+                # List all activities and hours from one day
                 list_all_day_act = driver.find_elements_by_css_selector(
-                    ".cp-class-container > div:nth-of-type(2) .calendar-item-name"
+                    ".cp-class-list .cp-class-list-day-col .calendar-item-name"
                 )
-                for element in list_all_day_act:
-                    list_all.append((element.text).lower())
-                # List all bookable activities and their start time
-                list_bookable = []
-                list_all_bookable_act = driver.find_elements_by_css_selector(
-                    ".cp-class-container > div:nth-of-type(2) .is-bookable .calendar-item-name"
+                list_all = [element.text.lower() for element in list_all_day_act]
+                lst_all_day_hrs = driver.find_elements_by_css_selector(
+                    ".cp-class-list .cp-class-list-day-col .calendar-item-start"
                 )
-                for element in list_all_bookable_act:
-                    list_bookable.append((element.text).lower())
-                # List all activities' start time
-                list_all_start = []
-                list_hours = driver.find_elements_by_css_selector(
-                    ".cp-class-container > div:nth-of-type(2) .calendar-item-start"
-                )
-                for element in list_hours:
-                    list_all_start.append(element.text)
+                lst_hrs = [element.text for element in lst_all_day_hrs]
 
-                # Combine date & start hour strings, then list parsed
-                date_hour = []
-                for hour in list_all_start:
-                    date_hour.append(date + " " + hour)
-                parsed_dates = []
-                for element in date_hour:
-                    right_format_data = dateparser.parse(element, languages=["pl"])
-                    parsed_dates.append(right_format_data)
+                # Dict from hours and activities
+                dict_all_and_hrs = {}
+                for key, value in zip(lst_hrs, list_all):
+                    if key not in dict_all_and_hrs:
+                        dict_all_and_hrs[key] = []
+                    dict_all_and_hrs[key].append(value)
+                list_all_keys = list(dict_all_and_hrs)  # List all hours (without doubles)
+
+                # Get user training index in all activities
                 user_training = user.classes.lower()
-                if user_training in list_bookable:
-                    # Find index of desirable workout and book
-                    workout_index = list_all.index((user.classes).lower())
-                    web_index = str(workout_index + 2)  # From gym website
-                    driver.find_element_by_css_selector(
-                        ".cp-class-container > div:nth-of-type(2) > div:nth-of-type("
-                        + web_index
-                        + ") .class-item-actions"
-                    ).click()
-                    time.sleep(0.5)
-                    training_datetime = parsed_dates[workout_index - 1]
-                    training_activity = Train(
-                        your_training=user.classes,
-                        training_datetime=training_datetime,
-                        user_id=user.id,
-                    )
-                    db.session.add(training_activity)
-                    db.session.commit()
-                    driver.close()
-                    # Send sms
-                    # Below body_message is one liner and written in
-                    # "bad language" due to gsm coding restrictions
-                    body_message = f'Hej, trenujesz {user_training} w dniu {training_datetime}! Zaakceptuj - "tak" lub "nie". Jak nie potwierdzisz uczestnictwa do 4 godzin przed startem treninu, twoja rezerwacja zostanie anulowana.'
-                    client = Client(
-                        current_app.config["TWILIO_ACCOUNT_SID"],
-                        current_app.config["TWILIO_AUTH_TOKEN"],
-                    )
-                    message = client.messages.create(
-                        body=body_message,
-                        from_=current_app.config["TWILIO_PHONE_NUMBER"],
-                        to="+48" + str(user.cell_number),
-                    )
-                    print(message.sid)
-                else:
-                    pass
+                for item in dict_all_and_hrs:
+                    for element in dict_all_and_hrs[item]:
+                        if user_training in element:
+                            hour_key = item
+                            hour_activities_lst = dict_all_and_hrs[item]
+                            usr_class_idx = hour_activities_lst.index(element)
+
+                # List all bookable activities and their start time packed into dict
+                list_all_bookable_act = driver.find_elements_by_css_selector(
+                    ".cp-class-list .cp-class-list-day-col .is-bookable .calendar-item-name"
+                )
+                list_bookable = [
+                    element.text.lower() for element in list_all_bookable_act
+                ]
+                list_hours = driver.find_elements_by_css_selector(
+                    ".cp-class-list .cp-class-list-day-col .is-bookable .calendar-item-start"
+                )
+                list_all_start_time = [element.text for element in list_hours]
+
+                dict_all_and_hrs_bookable = {}
+                for key, value in zip(list_all_start_time, list_bookable):
+                    if key not in dict_all_and_hrs_bookable:
+                        dict_all_and_hrs_bookable[key] = []
+                    dict_all_and_hrs_bookable[key].append(value)
+                list_bookable_keys = list(
+                    dict_all_and_hrs_bookable
+                )  # List bookable hours
+
+                # Combine date & start hour strings
+                date_hour = tommorow + " " + str(hour_key)
+
+                for element in list_bookable:
+                    if user_training in element:
+                        web_idx = str(usr_class_idx + 1)
+                        hour_web_idx = str(
+                            list_all_keys.index(hour_key) + 1
+                        )  # From gym website
+                        driver.find_element_by_css_selector(
+                            ".cp-class-list > div:nth-of-type("
+                            + hour_web_idx
+                            + ") > div:nth-of-type("
+                            + web_idx
+                            + ") .class-item-actions"
+                        ).click()
+                        time.sleep(0.5)
+
+                        training_datetime = dateparser.parse(
+                            date_hour
+                        )  # , languages=['pl'])
+                        training_activity = Train(
+                            your_training=user.classes,
+                            training_datetime=training_datetime,
+                            user_id=user.id,
+                        )
+                        db.session.add(training_activity)
+                        db.session.commit()
+                        driver.close()
+
+                        # Send sms
+                        # Below body_message is one liner and written in
+                        # "bad formatting" due to gsm coding restrictions
+                        body_message = f'Hej, trenujesz {user_training} w dniu {training_datetime}! Zaakceptuj - "tak" lub "nie". Jak nie potwierdzisz uczestnictwa do 4 godzin przed startem treninu, twoja rezerwacja zostanie anulowana.'
+                        client = Client(
+                            current_app.config["TWILIO_ACCOUNT_SID"],
+                            current_app.config["TWILIO_AUTH_TOKEN"],
+                        )
+                        message = client.messages.create(
+                            body=body_message,
+                            from_=current_app.config["TWILIO_PHONE_NUMBER"],
+                            to="+48" + str(user.cell_number),
+                        )
+                        print(message.sid)
+                    else:
+                        pass  # sth here in near future
             else:
-                pass
+                pass  # like above
     return
 
 
-@csrf.exempt  # Some errors without this decorator
+@csrf.exempt
 @bp.route("/sms", methods=["POST", "GET"])
 def sms():
+    """
+    This route makes requests based on incoming smses from users. It responds with
+    greetings, if user accepts workout or unbooks training if user refuses to take part
+    in. 
+    """
     resp = MessagingResponse()
     from_number = request.values.get("From", None)  # Need to cut country prefix
     strip_number = from_number[3:]
     body = request.values.get("Body", None)
-    user = User.query.filter_by(
-        cell_number=strip_number
-    ).first()  # Find user by cell_number not username
+    user = User.query.filter_by(cell_number=strip_number).first()
+
     if "tak" in body.lower():
         Train.query.filter_by(user_id=user.id).order_by(
             Train.timestamp.desc()
@@ -152,38 +156,12 @@ def sms():
         db.session.commit()
         resp.message("Dzieki za potwierdzenie. Udanego treningu.")
     elif "nie" in body.lower():
-        chrome_options = webdriver.ChromeOptions()
-        # driver_path = "/Users/micha/Documents/GitHub/fitness_app/chromedriver"  # local
-        chrome_options.add_argument("--window-size=1280x1696")  # docker + local
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--headless")  # docker
-        chrome_options.add_argument("--no-sandbox")  # docker
-        chrome_options.add_argument("--disable-gpu")  # docker
-        chrome_options.add_argument(
-            "--lang=pl"
-        )  # necessary for avoiding parsing dates error; docker + local in headless mode
-        driver = webdriver.Chrome(
-            chrome_options=chrome_options
-        )  # , executable_path=driver_path)  # executable path argument; local executions
+        arg_list = local_options(webdriver)
+        driver = get_driver(arg_list)
+        log_user(user, driver)
 
-        driver.get(current_app.config["GYM_LOGIN_URL"])
-        time.sleep(1)  # Need time to load page
-        driver.find_element_by_xpath("//div/input[@name='Login']").send_keys(
-            user.club_site_login
-        )
-        driver.find_element_by_xpath("//div/input[@name='Password']").send_keys(
-            user.club_site_password
-        )
-        time.sleep(0.5)  # Just to see results no need in headless mode
-        driver.find_element_by_class_name("auth-form-actions").click()
-        time.sleep(2)  # Next page waiting
-
-        list_url = (
-            current_app.config["GYM_LIST_CLASSES"]
-            + "#/Classes/"
-            + str(user.club_name)
-            + "/List"
-        )
+        date = datetime.date.today()
+        list_url = create_url(user, date)
         driver.get(list_url)
         time.sleep(1)
 
@@ -212,38 +190,20 @@ def sms():
 @bp.route("/cancel_training", methods=["GET", "POST"])
 @login_required
 def cancel_training():
+    """
+    This route sends request to server to cancel user's booked training. It can be
+    invoking only manually. No method calls this route.
+    """
     form = CancelTrainingForm()
     if form.validate_on_submit():
         user = User.query.filter_by(
             username=current_user.username
-        ).first()  # find user by cell_number not username
-        driver_path = "/Users/micha/Documents/GitHub/fitness_app/chromedriver"
-        chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_argument("--window-size=1280x1696")  # docker + local
-        chrome_options.add_argument("--disable-dev-shm-usage")  # docker
-        # chrome_options.add_argument('--headless')  # docker
-        # chrome_options.add_argument('--no-sandbox')  # docker
-        # chrome_options.add_argument('--disable-gpu')  # docker
-        driver = webdriver.Chrome(
-            chrome_options=chrome_options, executable_path=driver_path
-        )  # docker
-        driver.get(current_app.config["GYM_LOGIN_URL"])
-        time.sleep(1)  # Obligatory for waiting to load page
-        driver.find_element_by_xpath("//div/input[@name='Login']").send_keys(
-            user.club_site_login
-        )
-        driver.find_element_by_xpath("//div/input[@name='Password']").send_keys(
-            user.club_site_password
-        )
-        time.sleep(0.5)  # Just to see results no need in headless mode
-        driver.find_element_by_class_name("auth-form-actions").click()
-        time.sleep(2)  # Next page waiting
-        list_url = (
-            current_app.config["GYM_LIST_CLASSES"]
-            + "#/Classes/"
-            + str(user.club_name)
-            + "/List"
-        )
+        ).first()  # Find user by cell_number.
+        arg_list = local_options(webdriver)
+        driver = get_driver(arg_list)
+        log_user(user, driver)
+        date = datetime.date.today()
+        list_url = create_url(user, date)
         driver.get(list_url)
         time.sleep(1)
         driver.find_element_by_css_selector(".is-booked .class-item-actions").click()
@@ -254,13 +214,16 @@ def cancel_training():
         driver.close()
         flash("Twój trening został odwołany.")
     return redirect(url_for("main.index"))
-    # return render_template('index.html')  # , form=form)
 
 
-# Unbook all unconfirmed traininges - without user permission
+# Scheduled every 2 hours.
 @scheduler.task("cron", id="unbook_classes", minute="5", hour="3-17/2")
 @bp.route("/unbook", methods=["GET", "POST"])
 def unbook():
+    """
+    This route unbooks all unconfirmed training classes, which haven't been confirmed by
+    the user 4 hours before particular training starts. 
+    """
     with scheduler.app.test_request_context():
         users = User.query.all()
         for user in users:
@@ -279,37 +242,12 @@ def unbook():
             delta_hours = (last_training_time - datetime.datetime.now()).seconds / 3600
             if delta_hours <= 4.0:
                 if is_confirmed == "nie":
-                    driver_path = (
-                        "/Users/micha/Documents/GitHub/fitness_app/chromedriver"
-                    )  # local
-                    chrome_options = webdriver.ChromeOptions()
-                    chrome_options.add_argument(
-                        "--window-size=1280x1696"
-                    )  # docker + local
-                    chrome_options.add_argument("--disable-dev-shm-usage")  # docker
-                    # chrome_options.add_argument('--headless')  # docker
-                    # chrome_options.add_argument('--no-sandbox')  # docker
-                    # chrome_options.add_argument('--disable-gpu')  # docker
-                    driver = webdriver.Chrome(
-                        chrome_options=chrome_options, executable_path=driver_path
-                    )  # docker
-                    driver.get(current_app.config["GYM_LOGIN_URL"])
-                    time.sleep(1)  # Obligatory for waiting to load page
-                    driver.find_element_by_xpath(
-                        "//div/input[@name='Login']"
-                    ).send_keys(user.club_site_login)
-                    driver.find_element_by_xpath(
-                        "//div/input[@name='Password']"
-                    ).send_keys(user.club_site_password)
-                    time.sleep(0.5)  # Just to see results no need in headless mode
-                    driver.find_element_by_class_name("auth-form-actions").click()
-                    time.sleep(2)  # Next page waiting
-                    list_url = (
-                        current_app.config["GYM_LIST_CLASSES"]
-                        + "#/Classes/"
-                        + str(user.club_name)
-                        + "/List"
-                    )
+                    arg_list = local_options(webdriver)
+                    driver = get_driver(arg_list)
+                    log_user(user, driver)
+                    today = datetime.date.today()
+                    today_str = today.strftime("%Y-%m-%d")
+                    list_url = create_url(user, today_str)
                     driver.get(list_url)
                     time.sleep(1)
                     driver.find_element_by_css_selector(
@@ -320,6 +258,81 @@ def unbook():
                     db.session.delete(trainings)
                     db.session.commit()
                     return redirect(url_for("main.index"))
-            else:
-                pass
     return
+
+
+def log_user(user, driver):
+    """
+    "This method logs users to gym site.
+    """
+    driver.get(current_app.config["GYM_LOGIN_URL"])
+    time.sleep(4)
+    driver.find_element_by_xpath("//div/input[@name='Login']").send_keys(
+        user.club_site_login
+    )
+    driver.find_element_by_xpath("//div/input[@name='Password']").send_keys(
+        decrypt_gym_password(user)
+    )
+    time.sleep(0.5)
+    driver.find_element_by_class_name("auth-form-actions").click()
+    time.sleep(4)
+    return
+
+
+def local_options(webdriver):
+    """
+    This method adds options to webriver and uses it as chrome_options working in local
+    environment. It also returns list with chrome_options and driver_path as arguments.
+    """
+    chrome_options = webdriver.ChromeOptions()
+    driver_path = "/Users/micha/Documents/GitHub/fitness_app/chromedriver"
+    chrome_options.add_argument("--window-size=1280x1696")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    arg_list = [chrome_options, driver_path]
+    return arg_list
+
+
+def docker_options(webdriver):
+    """
+    This method adds options to webriver and uses it as chrome_options working in docker
+    container. It also returns list with chrome_options as an only argument.
+    """
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--window-size=1280x1696")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--lang=pl")
+    arg_list = [chrome_options]
+    return arg_list
+
+
+def get_driver(arg_list):
+    """
+    This method creates a driver object depending on docker_options() or local_options()
+    fnction.
+    """
+    try:
+        driver = webdriver.Chrome(options=arg_list[0], executable_path=arg_list[1])
+    except IndexError:
+        driver = webdriver.Chrome(options=arg_list[0])
+    return driver
+
+
+def create_url(user, date):
+    """
+    This method creates peronalized url for every user.
+    Depending on data argument app requests for today's or tommorow's
+    calendar.
+    """
+    list_url = (
+        current_app.config["GYM_LIST_CLASSES"]
+        + "#/Classes/"
+        + str(user.club_name)
+        + "/List"
+        + "?date="
+        + date
+        + "T00:00:00"
+    )
+    return list_url

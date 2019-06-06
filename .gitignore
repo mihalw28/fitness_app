@@ -437,3 +437,7 @@ Makefile
 
 # tests orig
 tests.py.orig
+
+# migrations folder
+migrationss
+migrationss/

@@ -14,6 +14,7 @@ from app import db, login
 
 
 class PaginatedAPIMixin(object):
+    # credits to Miguel Grinberg for this class
     @staticmethod
     def to_collection_dict(query, page, per_page, endpoint, **kwargs):
         resources = query.paginate(page, per_page, False)
@@ -39,7 +40,7 @@ class PaginatedAPIMixin(object):
 
 
 class User(PaginatedAPIMixin, UserMixin, db.Model):
-    __tablename__ = 'user'
+    __tablename__ = "user"
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
@@ -75,11 +76,11 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
         """
         # Change gym password from plain string to binary
         b_gym_password = gym_password.encode()
-        f = Fernet(current_app.config['KEY'])
+        f = Fernet(current_app.config["KEY"])
         # Generate encrypted password
         encrypted_password = f.encrypt(b_gym_password)
         # Decode password to plain text
-        plain_encrypted_password = bytes(encrypted_password).decode("utf=8")
+        plain_encrypted_password = bytes(encrypted_password).decode("utf-8")
         self.club_site_password = plain_encrypted_password
 
     def avatar(self, size):
@@ -108,13 +109,15 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
         return User.query.get(id)
 
     def to_dict(self, include_email=False):
+        # A DB object can't be directly serialize to JSON, just only Python objects could be
+        # serialized and written as db like objects.
         data = {
             "id": self.id,
             "username": self.username,
             "last_seen": self.last_seen.isoformat() + "Z",
-            "cell_number": self.cell_number,
-            "club_site_login": self.club_site_login,
-            "club_site_password": self.club_site_password,
+            # "cell_number": self.cell_number,
+            # "club_site_login": self.club_site_login,
+            # "club_site_password": self.club_site_password,
             "club_name": self.club_name,
             "club_no": self.club_no,
             "classes": self.classes,
@@ -133,6 +136,7 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
             "username",
             "email",
             "cell_number",
+            "club_site_login",
             "club_name",
             "club_no",
             "classes",
@@ -141,6 +145,8 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
                 setattr(self, field, data[field])
         if new_user and "password" in data:
             self.set_password(data["password"])
+        if new_user and "club_site_password" in data:
+            self.encrypt_site_password(data["club_site_password"])
 
     def get_token(self, expires_in=3600):
         now = datetime.utcnow()
@@ -168,7 +174,7 @@ def load_user(id):
 
 
 class Train(PaginatedAPIMixin, db.Model):
-    __tablename__ = 'train'
+    __tablename__ = "train"
 
     id = db.Column(db.Integer, primary_key=True)
     your_training = db.Column(db.String(50))
@@ -191,12 +197,12 @@ class Train(PaginatedAPIMixin, db.Model):
         }
         return data
 
-
-"""
-    def trainings_from_dict(self, data, new_user=False):
-        for field in ['username', 'email']:
+    def from_dict(self, data):
+        for field in [
+            "user_id",
+            "your_training",
+            "training_datetime",
+            "training_acceptance",
+        ]:
             if field in data:
                 setattr(self, field, data[field])
-        if new_user and 'password' in data:
-            self.set_password(data['password'])
-"""

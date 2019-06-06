@@ -1,9 +1,9 @@
 version: '3'
 services:
   main:
-    image: mihalw28/fitness_app:v1
+    image: mihalw28/fit_app:v4
     env_file:
-      - .flaskenv
+      - .env
     build: .
     ports:
       - "8000:5000"
