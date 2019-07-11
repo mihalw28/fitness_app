@@ -8,7 +8,7 @@ def test_new_user(new_user):
     assert new_user.password_hash != "DoItNow"
     assert new_user.email == "mark@orni.com"
     assert new_user.cell_number == "123123123"
-    assert new_user.club_site_login == "salon"
+    assert new_user.club_site_login == "salon@salon.com"
     assert new_user.club_name == "Kino"
     assert new_user.club_no == 1
 
@@ -20,7 +20,7 @@ def test_password_hashing(new_user):
     THEN check the password is stored correctly
     """
     new_user.set_password("kij")
-    assert new_user.password_hash != "gnom"
+    assert new_user.password_hash != "milargo"
     assert not new_user.check_password("jik")
     assert not new_user.check_password("kijj")
     assert new_user.check_password("kij")
