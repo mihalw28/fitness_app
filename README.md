@@ -1,5 +1,6 @@
 # Fitness App
 # :swimmer::bicyclist::runner:
+[![Build Status](https://travis-ci.org/mihalw28/fitness_app.svg?branch=master)](https://travis-ci.org/mihalw28/fitness_app)
 
 This repostitory contains source code of an app that is able to auto signup user to fitness class. The main idea behind this work was to automate things using python and make life easier.
 Many of us attending gym classes probably know the pain of trying to sign up for our favorite class and realized that it has been just fully booked. :disappointed: To help prevent such situations, automatic registration could be a good solution. 
