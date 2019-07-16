@@ -19,17 +19,17 @@ class Config(object):
     #     user=PSQL_USER, pw=PSQL_PW, host=PSQL_HOST, dbname=PSQL_DB
     # )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    MAIL_SERVER = os.environ["MAIL_SERVER"]
-    MAIL_PORT = int(os.environ["MAIL_PORT"] or 25)
-    MAIL_USE_TLS = os.environ["MAIL_USE_TLS"] is not None
-    MAIL_USERNAME = os.environ["MAIL_USERNAME"]
-    MAIL_PASSWORD = os.environ["MAIL_PASSWORD"]
-    ADMINS = ["mihalw28@o2.pl"]
+    # MAIL_SERVER = os.environ["MAIL_SERVER"]
+    # MAIL_PORT = int(os.environ["MAIL_PORT"] or 25)
+    # MAIL_USE_TLS = os.environ["MAIL_USE_TLS"] is not None
+    # MAIL_USERNAME = os.environ["MAIL_USERNAME"]
+    # MAIL_PASSWORD = os.environ["MAIL_PASSWORD"]
+    # ADMINS = ["mihalw28@o2.pl"]
     ACTIVITIES_PER_PAGE = 8
-    GYM_LOGIN_URL = os.environ["GYM_LOGIN_URL"]
-    GYM_LIST_CLASSES = os.environ["GYM_LIST_CLASSES"]
-    TWILIO_ACCOUNT_SID = os.environ["TWILIO_ACCOUNT_SID_TEMP"]
-    TWILIO_AUTH_TOKEN = os.environ["TWILIO_AUTH_TOKEN_TEMP"]
+    # GYM_LOGIN_URL = os.environ["GYM_LOGIN_URL"]
+    # GYM_LIST_CLASSES = os.environ["GYM_LIST_CLASSES"]
+    # TWILIO_ACCOUNT_SID = os.environ["TWILIO_ACCOUNT_SID_TEMP"]
+    # TWILIO_AUTH_TOKEN = os.environ["TWILIO_AUTH_TOKEN_TEMP"]
     SCHEDULER_API_ENABLED = True
-    TWILIO_PHONE_NUMBER = os.environ["TWILIO_PHONE_NUMBER"]
+    # TWILIO_PHONE_NUMBER = os.environ["TWILIO_PHONE_NUMBER"]
     KEY = os.environ["KEY"]
