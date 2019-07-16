@@ -3,13 +3,10 @@ from flask import current_app
 
 from app import create_app, db
 from app.models import User
-from config import Config
+from config import Config, TestingConfig
 
 
-# TO DO: refactor config.py to get different configs for dev, prod and testing
-# and finally remove this
-class TestConfig(Config):
-    TESTING = True
+class TestConfig(TestingConfig):
     SQLALCHEMY_DATABASE_URI = "sqlite://"
     WTF_CSRF_ENABLED = False
 
@@ -30,6 +27,7 @@ def new_user():
 
 @pytest.fixture(scope="module")  # socope="module" -> thanks to this, fixture invoked once per module
 def app():
+    # doing tests on remote "not-sqlite" DB, create app wit TestConfig as argument
     app = create_app(TestConfig)
     with app.app_context():
         current_app.test_client()
