@@ -1,6 +1,7 @@
 # Fitness App
 # :swimmer::bicyclist::runner:
-[![Build Status](https://travis-ci.org/mihalw28/fitness_app.svg?branch=master)](https://travis-ci.org/mihalw28/fitness_app)
+[![Build Status](https://travis-ci.org/mihalw28/fitness_app.svg?branch=master)](https://travis-ci.org/mihalw28/fitness_app) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+
 
 This repostitory contains source code of an app that is able to auto signup user to fitness class. The main idea behind this work was to automate things using python and make life easier.
 Many of us attending gym classes probably know the pain of trying to sign up for our favorite class and realized that it has been just fully booked. :disappointed: To help prevent such situations, automatic registration could be a good solution. 
@@ -35,8 +36,8 @@ Default gym app doesn't allow to schedule trainings and signup automatically.
 
 
 #### Main goals to accomplish:
-1. [x] Firstly I had an idea of deploying app on Heroku, but that idea is not alive now. Foremost it's necessary to create API endpoints for scrapping gym website using AWS Lambda. ~~I will try to deploy the whole app using serverless technology (@ AWS Λ); both scrapping module and web app module.~~ AWS Lambda connected to DB instance within VPC generates high costs, so this idea has been dropped. Scrapping module is placed within the main app.
-2. [x] Tests. I'm currently improving this skill. Some tests have been added recently.
+1. [x] Firstly I had an idea of deploying app on Heroku, but that idea is not alive now. Foremost it's necessary to create API endpoints for scrapping gym website using AWS Lambda. AWS Lambda connected to DB instance within VPC generates high costs, so this idea has been dropped. Scrapping module is placed within the main app.
+2. [x] Tests.
 3. [ ] Replace some app modules with Lambda functions and add new ones.
 4. [x] Create API endpoints to handle HTTP requests - API Gateway.
 5. [ ] Create complete REST API.
@@ -56,7 +57,7 @@ Default gym app doesn't allow to schedule trainings and signup automatically.
 * [Selenium](https://github.com/SeleniumHQ/selenium)
 * [Twilio](https://www.twilio.com/)
 * [Docker](https://www.docker.com/):whale:
-* ~~will be~~ Has been deployed using [AWS](https://aws.amazon.com/lambda/) (RDS, API Gateway, Elastic Beanstalk, Docker)
+* Deployed using [AWS](https://aws.amazon.com/lambda/) (RDS, API Gateway, Elastic Beanstalk, ~~Docker~~)
 
 
 #### Credits:
