@@ -2,6 +2,8 @@ from flask import redirect, url_for
 
 from app.models import User
 
+from app.auth.crypting import decrypt_gym_password
+
 
 def test_login_page(client):
     """
@@ -140,3 +142,14 @@ def test_invalid_registration(client, new_user):
         or "Prosze wpisać inny numer telefonu."
         or "Wybrana nazwa juz istnieje."
     ) in response.get_data(as_text=True)
+
+
+def test_gym_password_decryption(client):
+    """
+    GIVEN an existing user with encrypted gym password
+    WHEN the users 
+    THEN check the plain text
+    """
+    user = User.query.filter_by(username="micha").first()
+    plain_text_pw = decrypt_gym_password(user)
+    assert plain_text_pw == "MaRaKuJa1"

@@ -25,7 +25,9 @@ def new_user():
     return user
 
 
-@pytest.fixture(scope="module")  # socope="module" -> thanks to this, fixture invoked once per module
+@pytest.fixture(
+    scope="module"
+)  # socope="module" -> thanks to this, fixture invoked once per module
 def app():
     # doing tests on remote "not-sqlite" DB, create app wit TestConfig as argument
     app = create_app(TestConfig)
@@ -37,7 +39,8 @@ def app():
         user2 = User(username="Elon", email="elon@musk.com")
         user3 = User(username="micha", email="micha@micha.com")
         user3.set_password("micha")
+        user3.encrypt_site_password("MaRaKuJa1")
         db.session.add_all([user1, user2, user3])
         db.session.commit()
-        
+
         yield current_app
