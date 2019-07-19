@@ -40,7 +40,7 @@ def test_valid_login_logout(client):
         follow_redirects=True,
     )
     assert response.status_code == 200
-    assert current_user.is_authenticated == True
+    assert current_user.is_authenticated is True
     assert "Czołem micha!" in response.get_data(as_text=True)
     assert "Starsze aktywności" in response.get_data(as_text=True)
     assert "Wyloguj się" in response.get_data(as_text=True)
@@ -71,7 +71,7 @@ def test_invalid_login_logout(client):
         follow_redirects=True,
     )
     assert response.status_code == 200
-    assert not current_user.is_authenticated == True
+    assert not current_user.is_authenticated is True
     assert "Niepoprawna nazwa uzytkownika lub hasło" in response.get_data(as_text=True)
     assert "Zaloguj się" in response.get_data(as_text=True)
     assert "Hasło" in response.get_data(as_text=True)
