@@ -1,3 +1,6 @@
+from app.models import User
+
+
 def test_new_user(new_user):
     """
     GIVEN a User model
@@ -48,3 +51,14 @@ def test_avatar(new_user):
         new_user.avatar(128)
         == "https://www.gravatar.com/avatar/38dd64125c5c68fc6b296a90ef3c1f54?d=retro&s=128"
     )
+
+
+def test_get_token(client):
+    """
+    GIVEN a flask application with user defined
+    WHEN a token for user is set
+    THEN check if the token is correct
+    """
+    user = User.query.filter_by(username="Elon").first()
+    new_token = user.get_token()
+    assert user.check_token(new_token) == User.query.filter_by(token=new_token).first()

@@ -3,10 +3,10 @@ from flask import current_app
 
 from app import create_app, db
 from app.models import User
-from config import Config, TestingConfig
+from config import Config, TestingConfig, DevelopmentConfig
 
 
-class TestConfig(TestingConfig):
+class TestConfig(DevelopmentConfig):
     SQLALCHEMY_DATABASE_URI = "sqlite://"
     WTF_CSRF_ENABLED = False
 
@@ -25,9 +25,10 @@ def new_user():
     return user
 
 
-@pytest.fixture(
-    scope="module"
-)  # socope="module" -> thanks to this, fixture invoked once per module
+@pytest.fixture(scope="session")
+# scope="module" -> thanks to this, fixture invoked once per module
+# scope="session" -> to pass client argument for unit and functional tests - 2 modules, 
+# Scheduler related issues
 def app():
     # doing tests on remote "not-sqlite" DB, create app wit TestConfig as argument
     app = create_app(TestConfig)

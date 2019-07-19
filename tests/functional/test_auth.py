@@ -1,8 +1,8 @@
 from flask import redirect, url_for
-
-from app.models import User
+from flask_login import current_user
 
 from app.auth.crypting import decrypt_gym_password
+from app.models import User
 
 
 def test_login_page(client):
@@ -40,6 +40,7 @@ def test_valid_login_logout(client):
         follow_redirects=True,
     )
     assert response.status_code == 200
+    assert current_user.is_authenticated == True
     assert "Czołem micha!" in response.get_data(as_text=True)
     assert "Starsze aktywności" in response.get_data(as_text=True)
     assert "Wyloguj się" in response.get_data(as_text=True)
@@ -70,6 +71,7 @@ def test_invalid_login_logout(client):
         follow_redirects=True,
     )
     assert response.status_code == 200
+    assert not current_user.is_authenticated == True
     assert "Niepoprawna nazwa uzytkownika lub hasło" in response.get_data(as_text=True)
     assert "Zaloguj się" in response.get_data(as_text=True)
     assert "Hasło" in response.get_data(as_text=True)
@@ -153,3 +155,43 @@ def test_gym_password_decryption(client):
     user = User.query.filter_by(username="micha").first()
     plain_text_pw = decrypt_gym_password(user)
     assert plain_text_pw == "MaRaKuJa1"
+
+
+def test_reset_password_request(client):
+    """
+    GIVEN a flask application
+    WHEN the "/auth/reset_password_request" page is requested
+    THEN check the response code
+    """
+    response = client.get(url_for("auth.reset_password_request"))
+    assert response.status_code == 200
+    assert "Resetuj hasło" in response.get_data(as_text=True)
+
+    """
+    GIVEN a flask application
+    WHEN the "/auth/reset_password_request" page is posted
+    THEN check the response 
+    """
+    response = client.post(
+        url_for("auth.reset_password_request"),
+        data=dict(email="mihalw28@o2.pl"),
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert "Zaloguj się" in response.get_data(as_text=True)
+
+
+# TO DO: add seetting new password
+def test_reset_password_token(client):
+    """
+    GIVEN a flask applicaiton
+    WHEN the "auth/reset_password/<token> url is posted
+    THEN check response and status code
+    """
+    user = User.query.filter_by(username="Elon").first()
+    token = user.get_reset_password_token()
+    response = client.post(url_for("auth.reset_password", token=token))
+    assert response.status_code == 200
+    assert ("Zresetuj swoje hasło" and "Nowe hasło" and "Powtórz hasło") in response.get_data(
+        as_text=True
+    )
