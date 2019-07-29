@@ -1,14 +1,11 @@
 version: '3'
 services:
   main:
-    image: mihalw28/fit_app:v4
+    image: mihalw28/fitness_app:docker_hub
     env_file:
       - .env
     build: .
     ports:
       - "8000:5000"
-    #environment:
-    #  - PYTHONPATH=/fitness_app/venv:/fitness_app/venv/bin
-    #  - PATH=/home/fitness_app/bin
     volumes:
       - ./app:/home/fitness_app/app
