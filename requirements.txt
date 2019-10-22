@@ -61,7 +61,7 @@ packaging==19.0
 passlib==1.7.1
 pbr==5.4.0
 pg8000==1.13.1
-Pillow==5.4.1
+Pillow==6.2.0
 pluggy==0.12.0
 psycopg2==2.7.7
 psycopg2-binary==2.7.7
