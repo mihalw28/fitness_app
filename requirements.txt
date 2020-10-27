@@ -17,7 +17,7 @@ chromedriver-install==0.2
 Click==7.0
 colorama==0.4.1
 coverage==4.5.3
-cryptography==2.4.2
+cryptography==3.2
 dateparser==0.7.1
 dominate==2.3.5
 dos2unix==1
