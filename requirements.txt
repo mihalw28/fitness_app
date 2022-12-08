@@ -10,7 +10,7 @@ Babel==2.6.0
 bandit==1.6.2
 black==19.3b0
 blinker==1.4
-certifi==2018.11.29
+certifi==2022.12.7
 cffi==1.11.5
 chardet==3.0.4
 chromedriver-install==0.2
